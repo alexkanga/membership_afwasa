@@ -156,3 +156,34 @@ Work Log:
 Stage Summary:
 - 404 resolved, login works, all dashboard views render with real data
 - GitHub: pushed 3 commits to main branch
+
+---
+Task ID: 6
+Agent: Main Coordinator
+Task: Debug and fix persistent 404 NOT_FOUND error on / route
+
+Work Log:
+- Investigated 404: Caddy gateway (port 81) proxying to Next.js (port 3000)
+- Root cause #1: Next.js dev server was not running / kept crashing
+- Root cause #2: System-level DATABASE_URL=file:/home/z/my-project/db/custom.db overriding .env's PostgreSQL URL
+- Root cause #3: channel_binding=require in DATABASE_URL causing Prisma/Neon connection crashes
+- Root cause #4: bun run dev process instability (process killed silently)
+- Root cause #5: output:'standalone' in next.config.ts incompatible with next start
+
+Fixes applied:
+1. Added dotenv config({ override: true }) in src/lib/db.ts to load .env with priority over system env
+2. Removed channel_binding=require from DATABASE_URL in .env
+3. Removed output:'standalone' from next.config.ts
+4. Fixed TypeScript errors: admin-panel.tsx (files null check), uploads/route.ts (importErrors include), executive-view.tsx (trends type)
+5. Used `npx next dev` with explicit DATABASE_URL export for server stability
+6. Verified full login flow: page loads → login form → authentication → Executive Dashboard with all KPIs
+
+Verification results (via agent-browser):
+- Login: kalexane@gmail.com → Admin AAEA (ADMIN role)
+- KPIs: 853 inscriptions, 806 membres uniques, 534 payés, 62.6% taux paiement
+- Charts: Évolution Mensuelle, Top 10 Pays, Top 5 Catégories
+- Alerts: 319 impayés, 326 inactifs, 53 673 € à recouvrer
+- All 9 navigation items working (sidebar + header)
+- Footer: sticky, AAEA / AfWASA © 2026
+
+GitHub: pushed commit 3b81b6f to main branch
