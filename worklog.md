@@ -138,3 +138,21 @@ Stage Summary:
 - Auth working (login returns token, session stored in zustand)
 - GitHub: 4 commits pushed to main branch
 - Database: PostgreSQL Neon with 7 tables, 853 raw + 853 clean records imported
+
+---
+Task ID: 5
+Agent: Main Coordinator
+Task: Fix 404 error, hydration issues, API data mismatches
+
+Work Log:
+- Investigated 404 error: server returned HTTP 200 but RSC stream contained notFound boundary content
+- Root cause #1: zustand persist had isLoading=true as default but never persisted it
+- Root cause #2: System DATABASE_URL overridden to SQLite by z-scripts
+- Root cause #3: API routes returned different data structures than frontend expected
+- Root cause #4: QualityView TypeError from non-numeric values
+- Fixed all issues, verified all 7 views work via Agent Browser
+- Pushed to GitHub
+
+Stage Summary:
+- 404 resolved, login works, all dashboard views render with real data
+- GitHub: pushed 3 commits to main branch
