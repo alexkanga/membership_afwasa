@@ -8,7 +8,20 @@ export async function GET() {
     });
 
     if (!activeUpload) {
-      return NextResponse.json({ success: true, hasData: false });
+      return NextResponse.json({
+        nouveauVsRenouvellement: {
+          nouveau: { count: 0, pourcentage: 0 },
+          renouvellement: { count: 0, pourcentage: 0 },
+        },
+        revenuNouveauVsRenouvellement: {
+          nouveau: { montant: 0, pourcentage: 0 },
+          renouvellement: { montant: 0, pourcentage: 0 },
+        },
+        tauxRenouvellement: 0,
+        tendanceRenouvellement: 0,
+        byCountry: [],
+        byCategory: [],
+      });
     }
 
     const records = await db.adhesionRecordClean.findMany({
@@ -17,55 +30,97 @@ export async function GET() {
 
     const nouvelles = records.filter(r => r.typeAdhesionNormalise === 'Nouvelle');
     const renouvellements = records.filter(r => r.typeAdhesionNormalise === 'Renouvellement');
+    const total = records.length;
 
-    const nouvellesRevenue = nouvelles.filter(r => r.statutPaiement === 'Payé').reduce((s, r) => s + (r.montantPaye || 0), 0);
-    const renouvellementsRevenue = renouvellements.filter(r => r.statutPaiement === 'Payé').reduce((s, r) => s + (r.montantPaye || 0), 0);
+    const nouvellesCount = nouvelles.length;
+    const renouvellementCount = renouvellements.length;
 
-    // Renewal rate: renewals / total subscriptions
-    const tauxRenouvellement = records.length > 0
-      ? Math.round((renouvellements.length / records.length) * 10000) / 100
+    const nouvellesRevenue = Math.round(
+      nouvelles.filter(r => r.statutPaiement === 'Payé').reduce((s, r) => s + (r.montantPaye || 0), 0) * 100
+    ) / 100;
+    const renouvellementsRevenue = Math.round(
+      renouvellements.filter(r => r.statutPaiement === 'Payé').reduce((s, r) => s + (r.montantPaye || 0), 0) * 100
+    ) / 100;
+
+    // Renewal rate
+    const tauxRenouvellement = total > 0
+      ? Math.round((renouvellementCount / total) * 10000) / 100
       : 0;
 
-    // Renewals by country
-    const renewalsByCountryMap: Record<string, number> = {};
+    // Revenue totals for percentages
+    const totalRevenue = nouvellesRevenue + renouvellementsRevenue;
+
+    // By country: both new and renewal
+    const countryMap: Record<string, { nouveau: number; renouvellement: number }> = {};
+    for (const r of nouvelles) {
+      const pays = r.paysNormalise || 'Non défini';
+      if (!countryMap[pays]) countryMap[pays] = { nouveau: 0, renouvellement: 0 };
+      countryMap[pays].nouveau++;
+    }
     for (const r of renouvellements) {
       const pays = r.paysNormalise || 'Non défini';
-      renewalsByCountryMap[pays] = (renewalsByCountryMap[pays] || 0) + 1;
+      if (!countryMap[pays]) countryMap[pays] = { nouveau: 0, renouvellement: 0 };
+      countryMap[pays].renouvellement++;
     }
-    const renewalsByCountry = Object.entries(renewalsByCountryMap)
-      .map(([pays, count]) => ({ pays, count }))
-      .sort((a, b) => b.count - a.count)
+    const byCountry = Object.entries(countryMap)
+      .map(([pays, data]) => ({
+        pays,
+        nouveau: data.nouveau,
+        renouvellement: data.renouvellement,
+        total: data.nouveau + data.renouvellement,
+      }))
+      .sort((a, b) => b.total - a.total)
       .slice(0, 15);
 
-    // Renewals by category
-    const renewalsByCategoryMap: Record<string, number> = {};
+    // By category: both new and renewal
+    const catMap: Record<string, { nouveau: number; renouvellement: number }> = {};
+    for (const r of nouvelles) {
+      const cat = r.categorieMembre || 'Non défini';
+      if (!catMap[cat]) catMap[cat] = { nouveau: 0, renouvellement: 0 };
+      catMap[cat].nouveau++;
+    }
     for (const r of renouvellements) {
       const cat = r.categorieMembre || 'Non défini';
-      renewalsByCategoryMap[cat] = (renewalsByCategoryMap[cat] || 0) + 1;
+      if (!catMap[cat]) catMap[cat] = { nouveau: 0, renouvellement: 0 };
+      catMap[cat].renouvellement++;
     }
-    const renewalsByCategory = Object.entries(renewalsByCategoryMap)
-      .map(([categorie, count]) => ({ categorie, count }))
-      .sort((a, b) => b.count - a.count);
+    const byCategory = Object.entries(catMap)
+      .map(([categorie, data]) => ({
+        categorie,
+        nouveau: data.nouveau,
+        renouvellement: data.renouvellement,
+        total: data.nouveau + data.renouvellement,
+      }))
+      .sort((a, b) => b.total - a.total);
 
     return NextResponse.json({
-      success: true,
-      hasData: true,
-      newVsRenewal: {
-        nouvelles: {
-          count: nouvelles.length,
-          revenue: Math.round(nouvellesRevenue * 100) / 100,
+      nouveauVsRenouvellement: {
+        nouveau: {
+          count: nouvellesCount,
+          pourcentage: total > 0 ? Math.round((nouvellesCount / total) * 10000) / 100 : 0,
         },
-        renouvellements: {
-          count: renouvellements.length,
-          revenue: Math.round(renouvellementsRevenue * 100) / 100,
+        renouvellement: {
+          count: renouvellementCount,
+          pourcentage: total > 0 ? Math.round((renouvellementCount / total) * 10000) / 100 : 0,
+        },
+      },
+      revenuNouveauVsRenouvellement: {
+        nouveau: {
+          montant: nouvellesRevenue,
+          pourcentage: totalRevenue > 0 ? Math.round((nouvellesRevenue / totalRevenue) * 10000) / 100 : 0,
+        },
+        renouvellement: {
+          montant: renouvellementsRevenue,
+          pourcentage: totalRevenue > 0 ? Math.round((renouvellementsRevenue / totalRevenue) * 10000) / 100 : 0,
         },
       },
       tauxRenouvellement,
-      renewalsByCountry,
-      renewalsByCategory,
+      tendanceRenouvellement: 0,
+      byCountry,
+      byCategory,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

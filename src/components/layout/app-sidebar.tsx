@@ -34,12 +34,14 @@ const ICON_MAP: Record<string, React.ElementType> = {
 };
 
 export function AppSidebar() {
-  const { user, logout, isAdmin } = useAuthStore();
-  const { currentPage, setCurrentPage } = useDashboardStore();
+  const user = useAuthStore((s) => s.user);
+  const isAdmin = useAuthStore((s) => s.isAdmin());
+  const currentPage = useDashboardStore((s) => s.currentPage);
+  const setCurrentPage = useDashboardStore((s) => s.setCurrentPage);
 
   const visiblePages = DASHBOARD_PAGES.filter((page) => {
     if (page.id === 'uploads' || page.id === 'admin') {
-      return isAdmin();
+      return isAdmin;
     }
     return true;
   });
@@ -97,15 +99,6 @@ export function AppSidebar() {
                 <span className="text-[10px] text-muted-foreground uppercase">{user.role}</span>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={logout}
-              className="w-full justify-start gap-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 h-8 px-2"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="text-xs">Se déconnecter</span>
-            </Button>
           </div>
         )}
       </div>

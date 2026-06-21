@@ -12,11 +12,11 @@ export interface AuthUser {
 interface AuthState {
   user: AuthUser | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
+  _hydrated: boolean;
   login: (user: AuthUser) => void;
   logout: () => void;
-  setLoading: (loading: boolean) => void;
   isAdmin: () => boolean;
+  hydrated: () => boolean;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -24,15 +24,22 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       isAuthenticated: false,
-      isLoading: true,
-      login: (user) => set({ user, isAuthenticated: true, isLoading: false }),
-      logout: () => set({ user: null, isAuthenticated: false, isLoading: false }),
-      setLoading: (loading) => set({ isLoading: loading }),
+      _hydrated: false,
+      login: (user) => set({ user, isAuthenticated: true, _hydrated: true }),
+      logout: () => set({ user: null, isAuthenticated: false }),
       isAdmin: () => get().user?.role === 'admin',
+      hydrated: () => get()._hydrated,
     }),
     {
       name: 'aaea-auth',
       partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
+      onRehydrateStorage: () => {
+        return (state) => {
+          if (state) {
+            state._hydrated = true;
+          }
+        };
+      },
     }
   )
 );

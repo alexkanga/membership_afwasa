@@ -9,7 +9,13 @@ export async function GET() {
     });
 
     if (!activeUpload) {
-      return NextResponse.json({ success: true, hasData: false });
+      return NextResponse.json({
+        riskMatrix: [],
+        criticalAlerts: [],
+        membersAtRisk: [],
+        countriesAtRisk: [],
+        recommendations: [],
+      });
     }
 
     const records = await db.adhesionRecordClean.findMany({
@@ -21,98 +27,196 @@ export async function GET() {
     // Payment rate
     const membresPayes = records.filter(r => r.statutPaiement === 'Payé').length;
     const tauxPaiement = total > 0 ? (membresPayes / total) * 100 : 0;
-    const paymentRateLevel = tauxPaiement >= THRESHOLDS.paymentRate.green
-      ? 'ok'
+    const paymentRateNiveau = tauxPaiement >= THRESHOLDS.paymentRate.green
+      ? 'faible'
       : tauxPaiement >= THRESHOLDS.paymentRate.orange
-        ? 'warning'
-        : 'critical';
+        ? 'moyen'
+        : 'élevé';
+    const paymentTendance = tauxPaiement >= THRESHOLDS.paymentRate.green ? 'stable' : 'en hausse';
 
     // Recovery rate
     const montantAttendu = records.reduce((s, r) => s + (r.montant || 0), 0);
     const montantPaye = records.reduce((s, r) => s + (r.montantPaye || 0), 0);
     const tauxRecouvrement = montantAttendu > 0 ? (montantPaye / montantAttendu) * 100 : 0;
-    const recoveryLevel = tauxRecouvrement >= THRESHOLDS.recoveryRate.green
-      ? 'ok'
+    const recoveryNiveau = tauxRecouvrement >= THRESHOLDS.recoveryRate.green
+      ? 'faible'
       : tauxRecouvrement >= THRESHOLDS.recoveryRate.orange
-        ? 'warning'
-        : 'critical';
+        ? 'moyen'
+        : 'élevé';
+    const recoveryTendance = tauxRecouvrement >= THRESHOLDS.recoveryRate.green ? 'stable' : 'en hausse';
 
     // Activation rate
     const membresActifs = records.filter(r => r.statutActivation === 'Actif').length;
     const tauxActivation = total > 0 ? (membresActifs / total) * 100 : 0;
-    const activationLevel = tauxActivation >= THRESHOLDS.activationRate.green
-      ? 'ok'
+    const activationNiveau = tauxActivation >= THRESHOLDS.activationRate.green
+      ? 'faible'
       : tauxActivation >= THRESHOLDS.activationRate.orange
-        ? 'warning'
-        : 'critical';
+        ? 'moyen'
+        : 'élevé';
+    const activationTendance = tauxActivation >= THRESHOLDS.activationRate.green ? 'stable' : 'en hausse';
 
     // Duplicate emails
     const emails = records.map(r => r.emailNormalise).filter(Boolean);
     const duplicateEmails = emails.length - new Set(emails).size;
-    const duplicatesLevel = duplicateEmails <= THRESHOLDS.duplicateEmails.green
-      ? 'ok'
+    const dupNiveau = duplicateEmails <= THRESHOLDS.duplicateEmails.green
+      ? 'faible'
       : duplicateEmails <= THRESHOLDS.duplicateEmails.orange
-        ? 'warning'
-        : 'critical';
+        ? 'moyen'
+        : 'élevé';
+    const dupTendance = duplicateEmails <= THRESHOLDS.duplicateEmails.green ? 'stable' : 'en hausse';
 
     // Unaccounted payments
     const unaccountedPayments = records.filter(r => r.statutPaiement === 'Payé' && !r.datePaiementComptabilite).length;
-    const unaccountedLevel = unaccountedPayments <= THRESHOLDS.unaccountedPayments.green
-      ? 'ok'
+    const unaccNiveau = unaccountedPayments <= THRESHOLDS.unaccountedPayments.green
+      ? 'faible'
       : unaccountedPayments <= THRESHOLDS.unaccountedPayments.orange
-        ? 'warning'
-        : 'critical';
+        ? 'moyen'
+        : 'élevé';
+    const unaccTendance = unaccountedPayments <= THRESHOLDS.unaccountedPayments.green ? 'stable' : 'en hausse';
 
-    // Old debt 90+ days
+    // Old debt
     const oldDebt90 = records.filter(r => r.trancheAgeCreance === '>90').length;
-    const oldDebtLevel = oldDebt90 <= THRESHOLDS.oldDebt90Days.green
-      ? 'ok'
+    const oldDebtNiveau = oldDebt90 <= THRESHOLDS.oldDebt90Days.green
+      ? 'faible'
       : oldDebt90 <= THRESHOLDS.oldDebt90Days.orange
-        ? 'warning'
-        : 'critical';
+        ? 'moyen'
+        : 'élevé';
+    const oldDebtTendance = oldDebt90 <= THRESHOLDS.oldDebt90Days.green ? 'stable' : 'en hausse';
 
-    // Top risk alerts
-    const riskAlerts: Array<{ type: string; count: number; level: string; description: string }> = [];
+    // Risk Matrix
+    const riskMatrix = [
+      { categorie: 'Taux Paiement', niveau: paymentRateNiveau, score: Math.round(tauxPaiement * 10) / 10, tendance: paymentTendance },
+      { categorie: 'Recouvrement', niveau: recoveryNiveau, score: Math.round(tauxRecouvrement * 10) / 10, tendance: recoveryTendance },
+      { categorie: 'Activation', niveau: activationNiveau, score: Math.round(tauxActivation * 10) / 10, tendance: activationTendance },
+      { categorie: 'Doublons', niveau: dupNiveau, score: Math.min(100, duplicateEmails * 2), tendance: dupTendance },
+      { categorie: 'Paiements', niveau: unaccNiveau, score: Math.min(100, unaccountedPayments * 2), tendance: unaccTendance },
+      { categorie: 'Créances >90j', niveau: oldDebtNiveau, score: Math.min(100, oldDebt90 * 2), tendance: oldDebtTendance },
+    ];
 
-    if (paymentRateLevel === 'critical') {
-      riskAlerts.push({ type: 'payment_rate', count: Math.round((100 - tauxPaiement)), level: 'critical', description: `Taux de paiement critique: ${tauxPaiement.toFixed(1)}%` });
+    // Critical Alerts
+    const criticalAlerts: { id: string; titre: string; description: string; severite: string; date: string; categorie: string }[] = [];
+
+    if (tauxPaiement < THRESHOLDS.paymentRate.orange) {
+      criticalAlerts.push({
+        id: 'paiement-critique',
+        titre: 'Taux de paiement critique',
+        description: `Seul ${tauxPaiement.toFixed(1)}% des membres ont payé leur cotisation`,
+        severite: 'critique',
+        date: new Date().toISOString().split('T')[0],
+        categorie: 'Paiement',
+      });
+    } else if (tauxPaiement < THRESHOLDS.paymentRate.green) {
+      criticalAlerts.push({
+        id: 'paiement-faible',
+        titre: 'Taux de paiement faible',
+        description: `Le taux de paiement est de ${tauxPaiement.toFixed(1)}%, en dessous de l'objectif de ${THRESHOLDS.paymentRate.green}%`,
+        severite: 'avertissement',
+        date: new Date().toISOString().split('T')[0],
+        categorie: 'Paiement',
+      });
     }
-    if (recoveryLevel === 'critical') {
-      riskAlerts.push({ type: 'recovery_rate', count: Math.round(montantAttendu - montantPaye), level: 'critical', description: `Taux de recouvrement critique: ${tauxRecouvrement.toFixed(1)}%` });
+
+    if (tauxRecouvrement < THRESHOLDS.recoveryRate.orange) {
+      criticalAlerts.push({
+        id: 'recouvrement-critique',
+        titre: 'Taux de recouvrement critique',
+        description: `Le taux de recouvrement est de ${tauxRecouvrement.toFixed(1)}%`,
+        severite: 'critique',
+        date: new Date().toISOString().split('T')[0],
+        categorie: 'Recouvrement',
+      });
     }
-    if (oldDebtLevel !== 'ok') {
-      riskAlerts.push({ type: 'old_debt', count: oldDebt90, level: oldDebtLevel, description: `${oldDebt90} créances de plus de 90 jours` });
-    }
-    if (duplicatesLevel !== 'ok') {
-      riskAlerts.push({ type: 'duplicates', count: duplicateEmails, level: duplicatesLevel, description: `${duplicateEmails} emails en doublon` });
-    }
-    if (unaccountedLevel !== 'ok') {
-      riskAlerts.push({ type: 'unaccounted', count: unaccountedPayments, level: unaccountedLevel, description: `${unaccountedPayments} paiements sans date comptabilité` });
+
+    if (oldDebt90 > THRESHOLDS.oldDebt90Days.orange) {
+      criticalAlerts.push({
+        id: 'creances-anciennes',
+        titre: 'Créances anciennes élevées',
+        description: `${oldDebt90} créances de plus de 90 jours nécessitent une action urgente`,
+        severite: 'critique',
+        date: new Date().toISOString().split('T')[0],
+        categorie: 'Créances',
+      });
+    } else if (oldDebt90 > THRESHOLDS.oldDebt90Days.green) {
+      criticalAlerts.push({
+        id: 'creances-attention',
+        titre: 'Créances vieillissantes',
+        description: `${oldDebt90} créances de plus de 90 jours nécessitent une attention`,
+        severite: 'avertissement',
+        date: new Date().toISOString().split('T')[0],
+        categorie: 'Créances',
+      });
     }
 
     const payeNonActif = records.filter(r => r.flagPayeNonActif).length;
-    const actifNonPaye = records.filter(r => r.flagActifNonPaye).length;
     if (payeNonActif > 0) {
-      riskAlerts.push({ type: 'paid_inactive', count: payeNonActif, level: 'warning', description: `${payeNonActif} membres payés mais inactifs` });
+      criticalAlerts.push({
+        id: 'payes-inactifs',
+        titre: 'Membres payés mais inactifs',
+        description: `${payeNonActif} membres ont payé mais sont marqués inactifs`,
+        severite: 'avertissement',
+        date: new Date().toISOString().split('T')[0],
+        categorie: 'Activation',
+      });
     }
+
+    const actifNonPaye = records.filter(r => r.flagActifNonPaye).length;
     if (actifNonPaye > 0) {
-      riskAlerts.push({ type: 'active_unpaid', count: actifNonPaye, level: 'warning', description: `${actifNonPaye} membres actifs mais non payés` });
+      criticalAlerts.push({
+        id: 'actifs-non-payes',
+        titre: 'Membres actifs non payés',
+        description: `${actifNonPaye} membres sont actifs mais n\'ont pas payé`,
+        severite: 'critique',
+        date: new Date().toISOString().split('T')[0],
+        categorie: 'Paiement',
+      });
     }
 
-    // Members at risk (high debt, anomalies)
-    const membersAtRisk = records.filter(r =>
-      (r.montantARecouvrer || 0) > 0 && (r.trancheAgeCreance === '60-90' || r.trancheAgeCreance === '>90')
-    ).slice(0, 50).map(r => ({
-      rowNumber: r.rowNumber,
-      email: r.emailNormalise,
-      pays: r.paysNormalise,
-      montantARecouvrer: r.montantARecouvrer,
-      ageCreanceJours: r.ageCreanceJours,
-      trancheAgeCreance: r.trancheAgeCreance,
-      categorieMembre: r.categorieMembre,
-    }));
+    if (duplicateEmails > THRESHOLDS.duplicateEmails.orange) {
+      criticalAlerts.push({
+        id: 'doublons-emails',
+        titre: 'Nombreux doublons d\'emails',
+        description: `${duplicateEmails} adresses email en doublon dans la base`,
+        severite: 'avertissement',
+        date: new Date().toISOString().split('T')[0],
+        categorie: 'Qualité',
+      });
+    }
 
-    // Countries at risk (low payment)
+    if (unaccountedPayments > THRESHOLDS.unaccountedPayments.orange) {
+      criticalAlerts.push({
+        id: 'sans-compta',
+        titre: 'Paiements sans comptabilité',
+        description: `${unaccountedPayments} paiements sans date de comptabilisation`,
+        severite: 'avertissement',
+        date: new Date().toISOString().split('T')[0],
+        categorie: 'Comptabilité',
+      });
+    }
+
+    // Members at risk
+    const membersAtRisk = records
+      .filter(r =>
+        (r.montantARecouvrer || 0) > 0 && (r.trancheAgeCreance === '60-90' || r.trancheAgeCreance === '>90')
+      )
+      .sort((a, b) => (b.ageCreanceJours || 0) - (a.ageCreanceJours || 0))
+      .slice(0, 50)
+      .map(r => {
+        const age = r.ageCreanceJours || 0;
+        let risk = 'moyen';
+        let motif = '';
+        if (age >= 90) { risk = 'élevé'; motif = 'Créance > 90 jours'; }
+        else if (age >= 60) { risk = 'moyen'; motif = 'Créance 60-90 jours'; }
+        if (r.flagActifNonPaye) { motif += motif ? ', actif non payé' : 'Actif non payé'; risk = 'élevé'; }
+        return {
+          id: r.codeMembre || r.sourceId || `R${r.rowNumber}`,
+          societe: r.societeNormalisee || r.societeOriginale || '—',
+          pays: r.paysNormalise || '—',
+          risk,
+          motif,
+        };
+      });
+
+    // Countries at risk
     const countryData: Record<string, { total: number; paid: number }> = {};
     for (const r of records) {
       const pays = r.paysNormalise || 'Non défini';
@@ -122,55 +226,88 @@ export async function GET() {
     }
     const countriesAtRisk = Object.entries(countryData)
       .filter(([, data]) => data.total >= 3 && (data.paid / data.total) < 0.5)
-      .map(([pays, data]) => ({
-        pays,
-        total: data.total,
-        paymentRate: Math.round((data.paid / data.total) * 10000) / 100,
-      }))
-      .sort((a, b) => a.paymentRate - b.paymentRate);
+      .map(([pays, data]) => {
+        const tauxPaiementPays = Math.round((data.paid / data.total) * 10000) / 100;
+        return {
+          pays,
+          risque: tauxPaiementPays < 25 ? 'élevé' : 'moyen',
+          tauxPaiement: tauxPaiementPays,
+          membreCount: data.total,
+          motif: `Taux de paiement à ${tauxPaiementPays}%`,
+        };
+      })
+      .sort((a, b) => a.tauxPaiement - b.tauxPaiement);
 
-    // Categories at risk
-    const categoryData: Record<string, { total: number; paid: number }> = {};
-    for (const r of records) {
-      const cat = r.categorieMembre || 'Non défini';
-      if (!categoryData[cat]) categoryData[cat] = { total: 0, paid: 0 };
-      categoryData[cat].total++;
-      if (r.statutPaiement === 'Payé') categoryData[cat].paid++;
+    // Recommendations
+    const recommendations: { id: string; priorite: string; titre: string; description: string; categorie: string }[] = [];
+
+    if (tauxPaiement < THRESHOLDS.paymentRate.green) {
+      recommendations.push({
+        id: 'rec-paiement',
+        priorite: 'haute',
+        titre: 'Améliorer le taux de paiement',
+        description: `Lancer une campagne de relance pour les ${total - membresPayes} membres impayés. Mettre en place des rappels automatiques.`,
+        categorie: 'Paiement',
+      });
     }
-    const categoriesAtRisk = Object.entries(categoryData)
-      .filter(([, data]) => data.total >= 3 && (data.paid / data.total) < 0.5)
-      .map(([categorie, data]) => ({
-        categorie,
-        total: data.total,
-        paymentRate: Math.round((data.paid / data.total) * 10000) / 100,
-      }))
-      .sort((a, b) => a.paymentRate - b.paymentRate);
 
-    // Risk level summary
-    const riskSummary = {
-      paymentRate: { value: Math.round(tauxPaiement * 100) / 100, level: paymentRateLevel },
-      recoveryRate: { value: Math.round(tauxRecouvrement * 100) / 100, level: recoveryLevel },
-      activationRate: { value: Math.round(tauxActivation * 100) / 100, level: activationLevel },
-      duplicates: { value: duplicateEmails, level: duplicatesLevel },
-      unaccountedPayments: { value: unaccountedPayments, level: unaccountedLevel },
-      oldDebt90: { value: oldDebt90, level: oldDebtLevel },
-    };
+    if (tauxRecouvrement < THRESHOLDS.recoveryRate.green) {
+      recommendations.push({
+        id: 'rec-recouvrement',
+        priorite: 'haute',
+        titre: 'Accélérer le recouvrement',
+        description: `Prioriser les créances de plus de 90 jours. Envisager des plans de paiement échelonnés pour les créances importantes.`,
+        categorie: 'Recouvrement',
+      });
+    }
 
-    const criticalCount = Object.values(riskSummary).filter(v => v.level === 'critical').length;
-    const warningCount = Object.values(riskSummary).filter(v => v.level === 'warning').length;
+    if (duplicateEmails > THRESHOLDS.duplicateEmails.green) {
+      recommendations.push({
+        id: 'rec-doublons',
+        priorite: 'moyenne',
+        titre: 'Résoudre les doublons',
+        description: `Procéder à un dédoublonnage des ${duplicateEmails} adresses email en doublon pour améliorer la qualité des données.`,
+        categorie: 'Qualité',
+      });
+    }
+
+    if (unaccountedPayments > THRESHOLDS.unaccountedPayments.green) {
+      recommendations.push({
+        id: 'rec-compta',
+        priorite: 'moyenne',
+        titre: 'Compléter les dates de comptabilisation',
+        description: `${unaccountedPayments} paiements n'ont pas de date de comptabilisation. Mettre à jour les enregistrements concernés.`,
+        categorie: 'Comptabilité',
+      });
+    }
+
+    if (payeNonActif > 0) {
+      recommendations.push({
+        id: 'rec-activation',
+        priorite: 'basse',
+        titre: 'Vérifier les statuts d\'activation',
+        description: `${payeNonActif} membres payés sont inactifs. Vérifier s'ils doivent être réactivés ou si le paiement est en erreur.`,
+        categorie: 'Activation',
+      });
+    }
+
+    recommendations.push({
+      id: 'rec-prevention',
+      priorite: 'basse',
+      titre: 'Mettre en place des contrôles préventifs',
+      description: 'Automatiser la validation des données à l\'import pour réduire les anomalies à la source.',
+      categorie: 'Processus',
+    });
 
     return NextResponse.json({
-      success: true,
-      hasData: true,
-      riskAlerts,
+      riskMatrix,
+      criticalAlerts,
       membersAtRisk,
       countriesAtRisk,
-      categoriesAtRisk,
-      riskSummary,
-      overallRisk: criticalCount > 0 ? 'critical' : warningCount > 0 ? 'warning' : 'ok',
+      recommendations,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

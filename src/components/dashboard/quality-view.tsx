@@ -15,8 +15,7 @@ import {
   Cell,
 } from 'recharts';
 import { cn } from '@/lib/utils';
-import { KpiCard } from './kpi-card';
-import { ShieldCheck, AlertCircle } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 
 interface QualityData {
   scoreGlobal: number;
@@ -73,12 +72,18 @@ export function QualityView() {
   useEffect(() => {
     fetch('/api/dashboard/quality')
       .then((r) => r.json())
-      .then(setData)
-      .catch(() => {})
+      .then((d) => {
+        console.log('QUALITY_DATA:', JSON.stringify(d).substring(0, 200));
+        setData(d);
+      })
+      .catch((e) => {
+        console.error('QUALITY_FETCH_ERROR:', e);
+      })
       .finally(() => setLoading(false));
   }, []);
 
-  const score = data?.scoreGlobal || 0;
+  const score = data?.scoreGlobal ? Number(data.scoreGlobal) : 0;
+  const scoreLabel = score >= 85 ? 'bon' : score >= 70 ? 'moyen' : 'faible';
 
   return (
     <div className="space-y-6">
@@ -89,18 +94,24 @@ export function QualityView() {
             <ShieldCheck className={cn('w-10 h-10', getScoreColor(score))} />
             <div className="text-center">
               <span className="text-xs text-muted-foreground font-medium">Score Global de Qualité</span>
-              <div className={cn('text-4xl font-bold mt-1', getScoreColor(score))}>{loading ? '—' : score.toFixed(1)}</div>
+              <div className={cn('text-4xl font-bold mt-1', getScoreColor(score))}>
+                {loading ? '—' : String(score.toFixed(1))}
+              </div>
               <span className="text-xs text-muted-foreground">/ 100</span>
             </div>
             {!loading && (
-              <span className={cn('text-xs font-medium px-2 py-0.5 rounded-full', getScoreBg(score), getQualityTextColor(getScoreLabel(score === 100 ? 'bon' : score >= 85 ? 'bon' : score >= 70 ? 'moyen' : 'faible').toLowerCase()))}>
+              <span className={cn(
+                'text-xs font-medium px-2 py-0.5 rounded-full',
+                getScoreBg(score),
+                getQualityTextColor(scoreLabel)
+              )}>
                 {score >= 85 ? 'Excellent' : score >= 70 ? 'Acceptable' : 'À améliorer'}
               </span>
             )}
           </CardContent>
         </Card>
 
-        {/* Completeness Heatmap Cards */}
+        {/* Completeness Cards */}
         <Card className="shadow-sm md:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold text-[#362981]">Taux de Complétude par Champ</CardTitle>
@@ -112,9 +123,9 @@ export function QualityView() {
                   <div key={i} className="h-20 bg-gray-100 animate-pulse rounded-lg" />
                 ))
               ) : (
-                data?.completeness.map((item) => (
+                (data?.completeness || []).map((item) => (
                   <div
-                    key={item.champ}
+                    key={String(item.champ)}
                     className="flex flex-col items-center gap-2 p-3 rounded-lg border bg-gray-50/50"
                   >
                     <div className="relative w-12 h-12 flex items-center justify-center">
@@ -130,14 +141,14 @@ export function QualityView() {
                           fill="none"
                           stroke={item.statut === 'bon' ? '#009446' : item.statut === 'moyen' ? '#f59e0b' : '#ef4444'}
                           strokeWidth="3"
-                          strokeDasharray={`${item.taux}, 100`}
+                          strokeDasharray={`${Number(item.taux)}, 100`}
                         />
                       </svg>
-                      <span className="absolute text-[10px] font-bold">{item.taux}%</span>
+                      <span className="absolute text-[10px] font-bold">{Number(item.taux)}%</span>
                     </div>
-                    <span className="text-[10px] text-center text-muted-foreground leading-tight">{item.champ}</span>
-                    <span className={cn('text-[9px] font-medium', getQualityTextColor(item.statut))}>
-                      {getQualityLabel(item.statut)}
+                    <span className="text-[10px] text-center text-muted-foreground leading-tight">{String(item.champ)}</span>
+                    <span className={cn('text-[9px] font-medium', getQualityTextColor(String(item.statut)))}>
+                      {getQualityLabel(String(item.statut))}
                     </span>
                   </div>
                 ))
@@ -166,7 +177,7 @@ export function QualityView() {
                     <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px' }} />
                     <Bar dataKey="count" name="Occurrences" radius={[0, 4, 4, 0]}>
                       {(data?.doublons || []).map((_, index) => (
-                        <Cell key={index} fill={BAR_COLORS[index % BAR_COLORS.length]} />
+                        <Cell key={String(index)} fill={BAR_COLORS[index % BAR_COLORS.length]} />
                       ))}
                     </Bar>
                   </BarChart>
@@ -190,7 +201,7 @@ export function QualityView() {
                 {
                   key: 'severite',
                   header: 'Sévérité',
-                  render: (item) => <StatusBadge status={item.severite as string} />,
+                  render: (item) => <StatusBadge status={String(item.severite)} />,
                   className: 'w-24',
                 },
                 { key: 'count', header: 'Nb', className: 'w-12 text-right' },

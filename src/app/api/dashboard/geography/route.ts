@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { REGION_COUNTRY_MAP, AFRICAN_REGIONS, AFRICAN_COUNTRIES } from '@/lib/constants';
 
 export async function GET() {
   try {
@@ -8,7 +9,15 @@ export async function GET() {
     });
 
     if (!activeUpload) {
-      return NextResponse.json({ success: true, hasData: false });
+      return NextResponse.json({
+        africaVsOther: {
+          afrique: { count: 0, pourcentage: 0 },
+          horsAfrique: { count: 0, pourcentage: 0 },
+        },
+        paysRepartition: [],
+        regions: [],
+        totalPays: 0,
+      });
     }
 
     const records = await db.adhesionRecordClean.findMany({
@@ -16,74 +25,77 @@ export async function GET() {
     });
 
     const total = records.length;
-    const afrique = records.filter(r => r.zoneGeographique === 'Afrique');
-    const horsAfrique = records.filter(r => r.zoneGeographique === 'Hors Afrique');
+    const afriqueRecords = records.filter(r => r.zoneGeographique === 'Afrique');
+    const horsAfriqueRecords = records.filter(r => r.zoneGeographique === 'Hors Afrique');
 
-    // Members per country (top 20)
-    const countryMap: Record<string, { count: number; paid: number; revenue: number }> = {};
+    // Members per country with payment rate
+    const countryMap: Record<string, { count: number; paid: number }> = {};
     for (const r of records) {
       const pays = r.paysNormalise || 'Non défini';
       if (!countryMap[pays]) {
-        countryMap[pays] = { count: 0, paid: 0, revenue: 0 };
+        countryMap[pays] = { count: 0, paid: 0 };
       }
       countryMap[pays].count++;
       if (r.statutPaiement === 'Payé') {
         countryMap[pays].paid++;
-        countryMap[pays].revenue += r.montantPaye || 0;
       }
     }
 
-    const membersPerCountry = Object.entries(countryMap)
+    const paysRepartition = Object.entries(countryMap)
       .map(([pays, data]) => ({
         pays,
-        membres: data.count,
-        paymentRate: data.count > 0 ? Math.round((data.paid / data.count) * 10000) / 100 : 0,
-        revenue: Math.round(data.revenue * 100) / 100,
+        count: data.count,
+        tauxPaiement: data.count > 0 ? Math.round((data.paid / data.count) * 10000) / 100 : 0,
       }))
-      .sort((a, b) => b.membres - a.membres)
-      .slice(0, 20);
+      .sort((a, b) => b.count - a.count);
 
-    // Revenue per country
-    const revenuePerCountry = Object.entries(countryMap)
-      .map(([pays, data]) => ({ pays, revenue: Math.round(data.revenue * 100) / 100 }))
-      .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 20);
+    const totalPays = Object.keys(countryMap).length;
 
-    // Payment rate per country
-    const paymentRatePerCountry = Object.entries(countryMap)
-      .filter(([, data]) => data.count >= 2)
-      .map(([pays, data]) => ({
-        pays,
-        paymentRate: data.count > 0 ? Math.round((data.paid / data.count) * 10000) / 100 : 0,
-        total: data.count,
+    // Regions (map countries to African regions)
+    const regionMap: Record<string, number> = {};
+    for (const r of records) {
+      const pays = r.paysNormalise || '';
+      let region = REGION_COUNTRY_MAP[pays];
+      if (region) {
+        region = AFRICAN_REGIONS[region] || region;
+      }
+      if (!region) {
+        if (AFRICAN_COUNTRIES.includes(pays as typeof AFRICAN_COUNTRIES[number])) {
+          region = 'Autre (Afrique)';
+        } else if (r.zoneGeographique === 'Hors Afrique') {
+          region = 'Hors Afrique';
+        } else {
+          region = 'Non classé';
+        }
+      }
+      regionMap[region] = (regionMap[region] || 0) + 1;
+    }
+
+    const regions = Object.entries(regionMap)
+      .map(([region, count]) => ({
+        region,
+        count,
+        pourcentage: total > 0 ? Math.round((count / total) * 10000) / 100 : 0,
       }))
-      .sort((a, b) => a.paymentRate - b.paymentRate);
-
-    // Countries with high inscriptions but low payment
-    const highInscriptionLowPayment = membersPerCountry
-      .filter(c => c.membres >= 3 && c.paymentRate < 50)
-      .sort((a, b) => a.paymentRate - b.paymentRate);
+      .sort((a, b) => b.count - a.count);
 
     return NextResponse.json({
-      success: true,
-      hasData: true,
-      afriqueVsHorsAfrique: {
+      africaVsOther: {
         afrique: {
-          membres: afrique.length,
-          pourcentage: total > 0 ? Math.round((afrique.length / total) * 10000) / 100 : 0,
+          count: afriqueRecords.length,
+          pourcentage: total > 0 ? Math.round((afriqueRecords.length / total) * 10000) / 100 : 0,
         },
         horsAfrique: {
-          membres: horsAfrique.length,
-          pourcentage: total > 0 ? Math.round((horsAfrique.length / total) * 10000) / 100 : 0,
+          count: horsAfriqueRecords.length,
+          pourcentage: total > 0 ? Math.round((horsAfriqueRecords.length / total) * 10000) / 100 : 0,
         },
       },
-      membersPerCountry,
-      revenuePerCountry,
-      paymentRatePerCountry,
-      highInscriptionLowPayment,
+      paysRepartition,
+      regions,
+      totalPays,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

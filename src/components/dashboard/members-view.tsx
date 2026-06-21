@@ -46,7 +46,7 @@ export function MembersView() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/dashboard/members').then((r) => r.json()).then((d) => setMembers(d.members || [])),
+      fetch('/api/dashboard/members').then((r) => r.json()).then((d) => setMembers(d.members?.data || d.members || [])),
       fetch('/api/dashboard/categories').then((r) => r.json()).then((d) => setCategories(d.categories || [])),
     ])
       .catch(() => {})

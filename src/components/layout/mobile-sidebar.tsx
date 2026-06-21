@@ -36,13 +36,15 @@ const ICON_MAP: Record<string, React.ElementType> = {
 };
 
 export function MobileSidebar() {
-  const { user, logout, isAdmin } = useAuthStore();
-  const { currentPage, setCurrentPage } = useDashboardStore();
+  const user = useAuthStore((s) => s.user);
+  const isAdmin = useAuthStore((s) => s.isAdmin());
+  const currentPage = useDashboardStore((s) => s.currentPage);
+  const setCurrentPage = useDashboardStore((s) => s.setCurrentPage);
   const [open, setOpen] = React.useState(false);
 
   const visiblePages = DASHBOARD_PAGES.filter((page) => {
     if (page.id === 'uploads' || page.id === 'admin') {
-      return isAdmin();
+      return isAdmin;
     }
     return true;
   });
@@ -117,7 +119,7 @@ export function MobileSidebar() {
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  logout();
+                  useAuthStore.getState().logout();
                   setOpen(false);
                 }}
                 className="w-full justify-start gap-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 h-8 px-2"

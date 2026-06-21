@@ -29,9 +29,10 @@ export async function POST(request: NextRequest) {
       role: user.role,
       token,
     });
-  } catch {
+  } catch (error) {
+    console.error("LOGIN_ERROR:", error);
     return NextResponse.json(
-      { error: "Erreur serveur" },
+      { error: "Erreur serveur", detail: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

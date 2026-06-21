@@ -8,7 +8,20 @@ export async function GET() {
     });
 
     if (!activeUpload) {
-      return NextResponse.json({ success: true, hasData: false });
+      return NextResponse.json({
+        kpis: {
+          montantAttendu: 0,
+          montantPaye: 0,
+          montantARecouvrer: 0,
+          tauxRecouvrement: 0,
+        },
+        trends: {},
+        waterfall: [],
+        modePaiement: [],
+        monthlyRevenue: [],
+        ageCreance: [],
+        toFollowUp: [],
+      });
     }
 
     const records = await db.adhesionRecordClean.findMany({
@@ -16,110 +29,113 @@ export async function GET() {
     });
 
     // Totals
-    const montantTotalAttendu = records.reduce((s, r) => s + (r.montant || 0), 0);
-    const montantTotalPaye = records.reduce((s, r) => s + (r.montantPaye || 0), 0);
-    const montantARecouvrer = records.reduce((s, r) => s + (r.montantARecouvrer || 0), 0);
-    const tauxRecouvrement = montantTotalAttendu > 0
-      ? Math.round((montantTotalPaye / montantTotalAttendu) * 10000) / 100
+    const montantAttendu = Math.round(records.reduce((s, r) => s + (r.montant || 0), 0));
+    const montantPaye = Math.round(records.reduce((s, r) => s + (r.montantPaye || 0), 0));
+    const montantARecouvrer = Math.round(records.reduce((s, r) => s + (r.montantARecouvrer || 0), 0));
+    const tauxRecouvrement = montantAttendu > 0
+      ? Math.round((montantPaye / montantAttendu) * 10000) / 100
       : 0;
 
-    // Average cotisation
-    const paidRecords = records.filter(r => r.montant != null && r.montant > 0);
-    const averageCotisation = paidRecords.length > 0
-      ? Math.round((paidRecords.reduce((s, r) => s + (r.montant || 0), 0) / paidRecords.length) * 100) / 100
-      : 0;
+    // Waterfall: Attendu → Payé → Recouvrer
+    const waterfall = [
+      { etape: 'Montant Attendu', valeur: montantAttendu },
+      { etape: 'Montant Payé', valeur: montantPaye },
+      { etape: 'À Recouvrer', valeur: montantARecouvrer },
+    ];
 
-    // Revenue by payment mode
-    const byModeMap: Record<string, { count: number; revenue: number }> = {};
+    // Revenue by payment mode with pourcentage
+    const byModeMap: Record<string, number> = {};
+    let totalRevenueByMode = 0;
     for (const r of records) {
-      const mode = r.modePaiementNormalise || 'Non défini';
-      if (!byModeMap[mode]) byModeMap[mode] = { count: 0, revenue: 0 };
-      byModeMap[mode].count++;
       if (r.statutPaiement === 'Payé') {
-        byModeMap[mode].revenue += r.montantPaye || 0;
+        const mode = r.modePaiementNormalise || 'Non défini';
+        byModeMap[mode] = (byModeMap[mode] || 0) + (r.montantPaye || 0);
+        totalRevenueByMode += r.montantPaye || 0;
       }
     }
-    const revenueByMode = Object.entries(byModeMap).map(([mode, data]) => ({
-      mode,
-      members: data.count,
-      revenue: Math.round(data.revenue * 100) / 100,
-    }));
-
-    // Revenue by subscription type
-    const byTypeMap: Record<string, { count: number; revenue: number }> = {};
-    for (const r of records) {
-      const type = r.typeAdhesionNormalise || 'Non défini';
-      if (!byTypeMap[type]) byTypeMap[type] = { count: 0, revenue: 0 };
-      byTypeMap[type].count++;
-      if (r.statutPaiement === 'Payé') {
-        byTypeMap[type].revenue += r.montantPaye || 0;
-      }
-    }
-    const revenueByType = Object.entries(byTypeMap).map(([type, data]) => ({
-      type,
-      members: data.count,
-      revenue: Math.round(data.revenue * 100) / 100,
-    }));
+    const modePaiement = Object.entries(byModeMap)
+      .map(([mode, montant]) => ({
+        mode,
+        montant: Math.round(montant * 100) / 100,
+        pourcentage: totalRevenueByMode > 0 ? Math.round((montant / totalRevenueByMode) * 10000) / 100 : 0,
+      }))
+      .sort((a, b) => b.montant - a.montant);
 
     // Monthly revenue
-    const monthlyRevenueMap: Record<string, { revenue: number; count: number }> = {};
+    const monthlyRevenueMap: Record<string, number> = {};
     for (const r of records) {
       if (r.dateInscription && r.statutPaiement === 'Payé') {
         const key = `${r.dateInscription.getFullYear()}-${String(r.dateInscription.getMonth() + 1).padStart(2, '0')}`;
-        if (!monthlyRevenueMap[key]) monthlyRevenueMap[key] = { revenue: 0, count: 0 };
-        monthlyRevenueMap[key].revenue += r.montantPaye || 0;
-        monthlyRevenueMap[key].count++;
+        monthlyRevenueMap[key] = (monthlyRevenueMap[key] || 0) + (r.montantPaye || 0);
       }
     }
     const monthlyRevenue = Object.entries(monthlyRevenueMap)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, data]) => ({ month, revenue: Math.round(data.revenue * 100) / 100, payments: data.count }));
+      .map(([mois, montant]) => ({ mois, montant: Math.round(montant * 100) / 100 }));
 
     // Debt by age bracket
     const debtBrackets: Record<string, { count: number; amount: number }> = {
-      '<30': { count: 0, amount: 0 },
-      '30-60': { count: 0, amount: 0 },
-      '60-90': { count: 0, amount: 0 },
-      '>90': { count: 0, amount: 0 },
+      '<30j': { count: 0, amount: 0 },
+      '30-60j': { count: 0, amount: 0 },
+      '60-90j': { count: 0, amount: 0 },
+      '>90j': { count: 0, amount: 0 },
     };
     for (const r of records) {
-      if (r.trancheAgeCreance && r.statutPaiement !== 'Payé') {
-        const bracket = debtBrackets[r.trancheAgeCreance];
-        if (bracket) {
-          bracket.count++;
-          bracket.amount += r.montantARecouvrer || 0;
-        }
+      if (r.statutPaiement !== 'Payé' && (r.montantARecouvrer || 0) > 0) {
+        const age = r.ageCreanceJours || 0;
+        let bracket = '<30j';
+        if (age >= 90) bracket = '>90j';
+        else if (age >= 60) bracket = '60-90j';
+        else if (age >= 30) bracket = '30-60j';
+        debtBrackets[bracket].count++;
+        debtBrackets[bracket].amount += r.montantARecouvrer || 0;
       }
     }
-    const debtByAgeBracket = Object.entries(debtBrackets).map(([bracket, data]) => ({
-      bracket,
-      members: data.count,
-      amount: Math.round(data.amount * 100) / 100,
+    const ageCreance = Object.entries(debtBrackets).map(([tranche, data]) => ({
+      tranche,
+      montant: Math.round(data.amount * 100) / 100,
+      count: data.count,
     }));
 
-    // Unaccounted payments (paid but no accounting date)
-    const unaccountedPayments = records.filter(
-      r => r.statutPaiement === 'Payé' && !r.datePaiementComptabilite
-    ).length;
+    // Members to follow up (unpaid with receivables, sorted by debt age desc)
+    const toFollowUp = records
+      .filter(r =>
+        r.statutPaiement !== 'Payé' && (r.montantARecouvrer || 0) > 0
+      )
+      .sort((a, b) => (b.ageCreanceJours || 0) - (a.ageCreanceJours || 0))
+      .slice(0, 50)
+      .map(r => {
+        const age = r.ageCreanceJours || 0;
+        let tranche = '<30j';
+        if (age >= 90) tranche = '>90j';
+        else if (age >= 60) tranche = '60-90j';
+        else if (age >= 30) tranche = '30-60j';
+        return {
+          id: r.codeMembre || r.sourceId || `R${r.rowNumber}`,
+          societe: r.societeNormalisee || r.societeOriginale || '—',
+          pays: r.paysNormalise || '—',
+          montant: Math.round(r.montantARecouvrer || 0),
+          ageJours: age,
+          tranche,
+        };
+      });
 
     return NextResponse.json({
-      success: true,
-      hasData: true,
-      total: {
-        montantTotalAttendu: Math.round(montantTotalAttendu * 100) / 100,
-        montantTotalPaye: Math.round(montantTotalPaye * 100) / 100,
-        montantARecouvrer: Math.round(montantARecouvrer * 100) / 100,
+      kpis: {
+        montantAttendu,
+        montantPaye,
+        montantARecouvrer,
         tauxRecouvrement,
       },
-      averageCotisation,
-      revenueByMode,
-      revenueByType,
+      trends: {},
+      waterfall,
+      modePaiement,
       monthlyRevenue,
-      debtByAgeBracket,
-      unaccountedPayments,
+      ageCreance,
+      toFollowUp,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

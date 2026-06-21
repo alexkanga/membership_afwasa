@@ -15,29 +15,44 @@ import { RisksView } from '@/components/dashboard/risks-view';
 import { UploadsView } from '@/components/dashboard/uploads-view';
 import { AdminPanel } from '@/components/dashboard/admin-panel';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useMounted } from '@/hooks/use-mounted';
+import { Droplets, Loader2 } from 'lucide-react';
 
 export default function Home() {
-  const { isAuthenticated, isLoading } = useAuthStore();
-  const { currentPage } = useDashboardStore();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
+  const isAdmin = useAuthStore((s) => s.isAdmin());
+  const hydrated = useAuthStore((s) => s._hydrated);
+  const currentPage = useDashboardStore((s) => s.currentPage);
+  const mounted = useMounted();
 
-  // Seed admin user on mount
+  // Seed admin user on first client render
   useEffect(() => {
     fetch('/api/auth/seed').catch(() => {});
   }, []);
 
-  // Loading state
-  if (isLoading) {
+  // Server render or before zustand hydration: show loading
+  if (!mounted || !hydrated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-3 border-[#362981] border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm text-muted-foreground">Chargement...</span>
+          <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-[#362981]">
+            <Droplets className="w-8 h-8 text-white" />
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <h1 className="text-lg font-bold text-[#362981]">AAEA</h1>
+            <span className="text-sm text-muted-foreground">AfWASA Dashboard</span>
+          </div>
+          <div className="mt-4 flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="text-sm">Chargement...</span>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Not authenticated - show login
+  // After hydration but not authenticated: show login
   if (!isAuthenticated) {
     return <LoginForm />;
   }
@@ -60,9 +75,9 @@ export default function Home() {
       case 'risks':
         return <RisksView />;
       case 'uploads':
-        return <UploadsView />;
+        return isAdmin ? <UploadsView /> : <ExecutiveView />;
       case 'admin':
-        return <AdminPanel />;
+        return isAdmin ? <AdminPanel /> : <ExecutiveView />;
       default:
         return <ExecutiveView />;
     }
@@ -86,6 +101,14 @@ export default function Home() {
             </div>
           </ScrollArea>
         </main>
+
+        {/* Footer */}
+        <footer className="border-t border-border bg-white py-3 px-4 lg:pl-64">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>AAEA / AfWASA &copy; {new Date().getFullYear()}</span>
+            <span>Membership Dashboard v1.0</span>
+          </div>
+        </footer>
       </div>
     </div>
   );
