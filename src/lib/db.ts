@@ -1,9 +1,16 @@
 import { PrismaClient } from '@prisma/client'
 
-// Load .env file to ensure correct DATABASE_URL overrides system env
-import { config } from 'dotenv'
-import { resolve } from 'path'
-config({ path: resolve(process.cwd(), '.env'), override: true })
+// In dev sandbox, system env may override .env → load .env explicitly
+// On Vercel, env vars are injected by the platform → skip dotenv
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    const { config } = await import('dotenv')
+    const { resolve } = await import('path')
+    config({ path: resolve(process.cwd(), '.env'), override: true })
+  } catch {
+    // dotenv not available, ignore
+  }
+}
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -25,11 +32,6 @@ let _db: PrismaClient | undefined
 export function getDb(): PrismaClient {
   if (!_db) {
     _db = globalForPrisma.prisma ?? new PrismaClient({
-      datasources: {
-        db: {
-          url: getDatabaseUrl(),
-        },
-      },
       log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
     })
     if (process.env.NODE_ENV !== 'production') {
