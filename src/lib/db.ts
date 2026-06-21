@@ -1,5 +1,10 @@
 import { PrismaClient } from '@prisma/client'
 
+// Load .env file to ensure correct DATABASE_URL overrides system env
+import { config } from 'dotenv'
+import { resolve } from 'path'
+config({ path: resolve(process.cwd(), '.env'), override: true })
+
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }

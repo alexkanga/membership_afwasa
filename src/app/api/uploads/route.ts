@@ -9,6 +9,9 @@ export async function GET() {
         uploadedBy: {
           select: { name: true, email: true },
         },
+        importErrors: {
+          select: { id: true },
+        },
       },
     });
 

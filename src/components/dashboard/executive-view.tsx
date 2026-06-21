@@ -40,7 +40,7 @@ interface SummaryData {
     membresActifs: number;
     paysRepresentes: number;
   };
-  trends: Record<string, number>;
+  trends: { [key: string]: number };
   monthlyEvolution: { mois: string; inscriptions: number; paiements: number }[];
   topCountries: { pays: string; count: number }[];
   topCategories: { categorie: string; count: number }[];

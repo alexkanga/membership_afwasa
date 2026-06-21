@@ -66,14 +66,14 @@ export function AdminPanel() {
     setDragActive(false);
 
     const files = e.dataTransfer.files;
-    if (files?.length > 0) {
+    if (files && files.length > 0) {
       simulateUpload(files[0].name);
     }
   }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files?.length > 0) {
+    if (files && files.length > 0) {
       simulateUpload(files[0].name);
     }
   };
