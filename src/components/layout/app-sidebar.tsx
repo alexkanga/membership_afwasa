@@ -1,0 +1,114 @@
+'use client';
+
+import React from 'react';
+import { useAuthStore, useDashboardStore } from '@/stores/auth-store';
+import { DASHBOARD_PAGES } from '@/lib/constants';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import {
+  LayoutDashboard,
+  Users,
+  Globe,
+  DollarSign,
+  RefreshCw,
+  ShieldCheck,
+  AlertTriangle,
+  Upload,
+  Settings,
+  LogOut,
+  Droplets,
+} from 'lucide-react';
+
+const ICON_MAP: Record<string, React.ElementType> = {
+  LayoutDashboard,
+  Users,
+  Globe,
+  DollarSign,
+  RefreshCw,
+  ShieldCheck,
+  AlertTriangle,
+  Upload,
+  Settings,
+};
+
+export function AppSidebar() {
+  const { user, logout, isAdmin } = useAuthStore();
+  const { currentPage, setCurrentPage } = useDashboardStore();
+
+  const visiblePages = DASHBOARD_PAGES.filter((page) => {
+    if (page.id === 'uploads' || page.id === 'admin') {
+      return isAdmin();
+    }
+    return true;
+  });
+
+  return (
+    <div className="flex h-full flex-col bg-white border-r border-border">
+      {/* Logo */}
+      <div className="flex items-center gap-3 px-4 py-5 border-b border-border">
+        <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-[#362981]">
+          <Droplets className="w-5 h-5 text-white" />
+        </div>
+        <div className="flex flex-col">
+          <span className="text-sm font-bold text-[#362981] leading-tight">AAEA</span>
+          <span className="text-[10px] text-muted-foreground leading-tight">AfWASA Dashboard</span>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <ScrollArea className="flex-1 px-3 py-4">
+        <nav className="flex flex-col gap-1">
+          {visiblePages.map((page) => {
+            const IconComp = ICON_MAP[page.icon] || LayoutDashboard;
+            const isActive = currentPage === page.id;
+
+            return (
+              <button
+                key={page.id}
+                onClick={() => setCurrentPage(page.id)}
+                className={cn(
+                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all w-full text-left',
+                  isActive
+                    ? 'bg-[#362981] text-white shadow-sm'
+                    : 'text-muted-foreground hover:bg-[#EBF8F9] hover:text-[#362981]'
+                )}
+              >
+                <IconComp className="w-4 h-4 shrink-0" />
+                <span className="truncate">{page.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </ScrollArea>
+
+      {/* User info */}
+      <Separator />
+      <div className="px-4 py-3">
+        {user && (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#362981] text-white text-xs font-bold shrink-0">
+                {user.name?.charAt(0)?.toUpperCase() || user.email.charAt(0).toUpperCase()}
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-sm font-medium truncate">{user.name || user.email}</span>
+                <span className="text-[10px] text-muted-foreground uppercase">{user.role}</span>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={logout}
+              className="w-full justify-start gap-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 h-8 px-2"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="text-xs">Se déconnecter</span>
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
