@@ -1,32 +1,167 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// AAEA Membership Database Schema
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String?
+  role         String   @default("admin")
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  lastLoginAt  DateTime?
+
+  uploadedFiles     UploadedFile[]
+  auditLogs         AuditLog[]
+  dashboardSettings DashboardSetting[]
 }
 
-model Post {
-  id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model UploadedFile {
+  id                String   @id @default(cuid())
+  originalFilename  String
+  storedFilename    String
+  filePath          String?
+  uploadedByUserId  String
+  uploadedAt        DateTime @default(now())
+  fileSize          Int?
+  fileHash          String?
+  sheetName         String?
+  totalRows         Int?
+  totalColumns      Int?
+  validRows         Int?
+  invalidRows       Int?
+  importStatus      String   @default("pending")
+  isActiveDataset   Boolean  @default(false)
+  errorMessage      String?
+  notes             String?
+
+  uploadedBy  User                   @relation(fields: [uploadedByUserId], references: [id])
+  rawRecords  AdhesionRecordRaw[]
+  cleanRecords AdhesionRecordClean[]
+  importErrors ImportError[]
+}
+
+model AdhesionRecordRaw {
+  id                        String   @id @default(cuid())
+  uploadId                  String
+  rowNumber                 Int
+  planAdhesion              String?
+  societeInstitutionUniv    String?
+  pays                      String?
+  email                     String?
+  montant                   Float?
+  dateInscription           DateTime?
+  numFacture                String?
+  modePaiement              String?
+  datePaiementActivation    DateTime?
+  sourceId                  String?
+  estActive                 String?
+  typeAdhesion             String?
+  codeMembre                String?
+  datePaiementComptabilite DateTime?
+  aPaye                     String?
+  rawJson                   String?
+  createdAt                 DateTime @default(now())
+
+  upload UploadedFile @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+
+  @@unique([uploadId, rowNumber])
+}
+
+model AdhesionRecordClean {
+  id                           String   @id @default(cuid())
+  uploadId                     String
+  rawRecordId                  String?
+  rowNumber                    Int
+  planAdhesionOriginal         String?
+  planAdhesionNormalise        String?
+  categorieMembre              String?
+  sousCategorieMembre         String?
+  societeOriginale             String?
+  societeNormalisee            String?
+  paysOriginal                 String?
+  paysNormalise                String?
+  zoneGeographique             String?
+  regionAfrique                String?
+  emailOriginal                String?
+  emailNormalise               String?
+  emailValide                  Boolean?
+  montant                      Float?
+  dateInscription              DateTime?
+  numFacture                   String?
+  modePaiementOriginal         String?
+  modePaiementNormalise        String?
+  datePaiementActivation       DateTime?
+  sourceId                     String?
+  statutActivation             String?
+  typeAdhesionOriginal         String?
+  typeAdhesionNormalise        String?
+  codeMembre                   String?
+  datePaiementComptabilite     DateTime?
+  statutPaiement               String?
+  montantPaye                  Float?
+  montantARecouvrer           Float?
+  delaiInscriptionPaiementJours Int?
+  delaiPaiementComptabiliteJours Int?
+  ageCreanceJours              Int?
+  trancheAgeCreance            String?
+  flagDoublonEmail             Boolean  @default(false)
+  flagDoublonCodeMembre        Boolean  @default(false)
+  flagDoublonFacture           Boolean  @default(false)
+  flagPayeSansDatePaiement     Boolean  @default(false)
+  flagPayeSansDateCompta       Boolean  @default(false)
+  flagPayeSansCodeMembre      Boolean  @default(false)
+  flagPayeNonActif             Boolean  @default(false)
+  flagActifNonPaye             Boolean  @default(false)
+  scoreQualiteLigne            Int?
+  createdAt                    DateTime @default(now())
+
+  upload UploadedFile @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+
+  @@unique([uploadId, rowNumber])
+}
+
+model ImportError {
+  id           String   @id @default(cuid())
+  uploadId     String
+  rowNumber    Int?
+  columnName   String?
+  errorType    String?
+  errorMessage String?
+  severity     String   @default("mineur")
+  createdAt    DateTime @default(now())
+
+  upload UploadedFile @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  action      String?
+  entityType  String?
+  entityId    String?
+  description String?
+  createdAt   DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
+
+model DashboardSetting {
+  id              String   @id @default(cuid())
+  settingKey      String   @unique
+  settingValue    String?
+  description     String?
+  updatedByUserId String?
+  updatedAt       DateTime @updatedAt
+
+  updatedBy User? @relation(fields: [updatedByUserId], references: [id])
 }
