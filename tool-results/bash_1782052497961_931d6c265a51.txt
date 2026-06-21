@@ -1,0 +1,1421 @@
+TU ES UN AGENT IA FULLSTACK SENIOR, EXPERT EN DÉVELOPPEMENT WEB, DATA DASHBOARD, BUSINESS INTELLIGENCE, AUTHENTIFICATION, BASE DE DONNÉES, IMPORT EXCEL, API BACKEND, FRONTEND MODERNE, UI/UX ET DÉPLOIEMENT.
+
+Tu dois développer une application web complète permettant à l’Association Africaine de l’Eau et de l’Assainissement, AAEA / AfWASA, de piloter ses membres à partir d’un fichier Excel template régulièrement uploadé par l’administration.
+
+L’application doit fonctionner comme un tableau de bord complet des membres, cotisations, paiements, recouvrements, catégories, pays, qualité des données, risques et historique des fichiers importés.
+
+CONTEXTE MÉTIER
+
+L’AAEA dispose d’un fichier Excel template nommé généralement :
+
+20260617 LISTE DES INSCRIPTIONS ET POTENTIELS_TEMPLATE.xlsx
+
+La feuille principale à exploiter est :
+
+INSCRIPTIONS ET ADHESIONS
+
+Les colonnes attendues dans cette feuille sont :
+
+-   PLAN_ADHESION
+-   SOCIETE / INSTITUTION / UNIVERSITE
+-   PAYS
+-   EMAIL
+-   MONTANT
+-   DATE INSCRIPTION
+-   NUM FACTURE
+-   MODE PAIEMENT
+-   DATE PAIEMENT / ACTIVATION
+-   ID
+-   EST ACTIVE ?
+-   TYPE ADHESION
+-   CODE MEMBRE
+-   DATE PAIEMENT COMPTABILITE
+-   A PAYE ?
+
+L’application doit permettre de charger ce fichier Excel à chaque mise à jour de la base membres. Après chaque upload, le dashboard doit être recalculé automatiquement.
+
+OBJECTIF PRINCIPAL DE L’APPLICATION
+
+Créer une application web sécurisée qui permet de :
+
+1.  Se connecter avec login et mot de passe.
+2.  Uploader le fichier Excel template.
+3.  Valider la structure du fichier.
+4.  Lire automatiquement les données de la feuille INSCRIPTIONS ET ADHESIONS.
+5.  Nettoyer et normaliser les données.
+6.  Calculer tous les KPI membership.
+7.  Afficher un dashboard complet et professionnel.
+8.  Suivre l’historique des fichiers uploadés.
+9.  Gérer les erreurs de fichier et les anomalies.
+10. Exporter ou consulter les statistiques.
+11. Séparer l’espace administration de l’espace consultation.
+12. Donner au Directeur Exécutif une vue claire, synthétique et décisionnelle.
+
+STACK TECHNIQUE RECOMMANDÉE
+
+Utiliser une stack moderne, robuste et simple à maintenir.
+
+Stack recommandée :
+
+-   Frontend : Next.js ou React
+-   Langage : TypeScript
+-   UI : Tailwind CSS avec composants modernes
+-   Graphiques : Recharts, Chart.js, ECharts ou équivalent
+-   Backend : API intégrée Next.js ou Node.js / Express / NestJS
+-   Base de données : PostgreSQL de préférence, ou SQLite pour MVP local
+-   ORM : Prisma ou équivalent
+-   Authentification : Auth.js / NextAuth, JWT ou session sécurisée
+-   Upload Excel : SheetJS / xlsx ou librairie équivalente
+-   Validation : Zod ou équivalent
+-   Sécurité mot de passe : bcrypt ou équivalent
+-   Déploiement possible : Vercel, Render, Railway, VPS ou serveur interne
+
+Ne pas imposer une version précise des librairies sans vérification. Utiliser les versions stables au moment du développement.
+
+ARCHITECTURE GÉNÉRALE ATTENDUE
+
+L’application doit contenir deux grands espaces.
+
+1.  ESPACE ADMINISTRATION
+
+Accessible uniquement après connexion.
+
+Fonctionnalités attendues :
+
+-   page de connexion ;
+-   gestion de session ;
+-   upload du fichier Excel ;
+-   validation de la structure du fichier ;
+-   affichage du résultat de l’import ;
+-   historique des fichiers uploadés ;
+-   consultation des erreurs d’import ;
+-   activation d’un fichier comme source de données officielle ;
+-   suppression ou archivage logique d’un import si nécessaire ;
+-   visualisation des anomalies détectées ;
+-   gestion minimale des utilisateurs si possible.
+
+2.  ESPACE DASHBOARD
+
+Accessible aux utilisateurs autorisés.
+
+Fonctionnalités attendues :
+
+-   vue exécutive ;
+-   indicateurs globaux ;
+-   analyse des membres ;
+-   analyse des paiements ;
+-   analyse des cotisations ;
+-   analyse Afrique / hors Afrique ;
+-   analyse par pays ;
+-   analyse par catégorie d’adhésion ;
+-   analyse des renouvellements ;
+-   analyse qualité des données ;
+-   alertes et risques ;
+-   filtres dynamiques ;
+-   tableaux détaillés ;
+-   graphiques interactifs.
+
+RÔLES UTILISATEURS
+
+Prévoir au minimum deux rôles :
+
+1.  Administrateur
+
+Droits :
+
+-   se connecter ;
+-   uploader un fichier Excel ;
+-   consulter l’historique des uploads ;
+-   activer un fichier comme base courante ;
+-   consulter les erreurs ;
+-   accéder au dashboard ;
+-   exporter les données si la fonctionnalité est développée.
+
+2.  Lecteur / Direction
+
+Droits :
+
+-   se connecter ;
+-   consulter le dashboard ;
+-   utiliser les filtres ;
+-   consulter les statistiques ;
+-   ne pas uploader de fichier ;
+-   ne pas modifier les paramètres.
+
+Prévoir la possibilité d’ajouter plus tard d’autres rôles :
+
+-   Finance ;
+-   Membership ;
+-   Direction Exécutive ;
+-   Super Admin.
+
+MODÈLE DE DONNÉES RECOMMANDÉ
+
+Créer les tables suivantes.
+
+1.  users
+
+Champs recommandés :
+
+-   id
+-   name
+-   email
+-   password_hash
+-   role
+-   is_active
+-   created_at
+-   updated_at
+-   last_login_at
+
+2.  uploaded_files
+
+Cette table doit conserver l’historique des fichiers chargés.
+
+Champs recommandés :
+
+-   id
+-   original_filename
+-   stored_filename
+-   file_path
+-   uploaded_by_user_id
+-   uploaded_at
+-   file_size
+-   file_hash
+-   sheet_name
+-   total_rows
+-   total_columns
+-   valid_rows
+-   invalid_rows
+-   import_status : pending, success, failed, archived
+-   is_active_dataset
+-   error_message
+-   notes
+
+3.  adhesion_records_raw
+
+Cette table conserve les lignes brutes importées depuis Excel.
+
+Champs recommandés :
+
+-   id
+-   upload_id
+-   row_number
+-   plan_adhesion
+-   societe_institution_universite
+-   pays
+-   email
+-   montant
+-   date_inscription
+-   num_facture
+-   mode_paiement
+-   date_paiement_activation
+-   source_id
+-   est_active
+-   type_adhesion
+-   code_membre
+-   date_paiement_comptabilite
+-   a_paye
+-   raw_json
+-   created_at
+
+4.  adhesion_records_clean
+
+Cette table conserve les données nettoyées et normalisées.
+
+Champs recommandés :
+
+-   id
+-   upload_id
+-   raw_record_id
+-   plan_adhesion_original
+-   plan_adhesion_normalise
+-   categorie_membre
+-   sous_categorie_membre
+-   societe_originale
+-   societe_normalisee
+-   pays_original
+-   pays_normalise
+-   zone_geographique : Afrique / Hors Afrique
+-   region_afrique
+-   email_original
+-   email_normalise
+-   email_valide
+-   montant
+-   date_inscription
+-   num_facture
+-   mode_paiement_original
+-   mode_paiement_normalise
+-   date_paiement_activation
+-   source_id
+-   statut_activation
+-   type_adhesion_original
+-   type_adhesion_normalise
+-   code_membre
+-   date_paiement_comptabilite
+-   statut_paiement
+-   montant_paye
+-   montant_a_recouvrer
+-   delai_inscription_paiement_jours
+-   delai_paiement_comptabilite_jours
+-   age_creance_jours
+-   tranche_age_creance
+-   flag_doublon_email
+-   flag_doublon_code_membre
+-   flag_doublon_facture
+-   flag_paye_sans_date_paiement
+-   flag_paye_sans_date_compta
+-   flag_paye_sans_code_membre
+-   flag_paye_non_actif
+-   flag_actif_non_paye
+-   score_qualite_ligne
+-   created_at
+
+5.  import_errors
+
+Champs recommandés :
+
+-   id
+-   upload_id
+-   row_number
+-   column_name
+-   error_type
+-   error_message
+-   severity : mineur, important, bloquant
+-   created_at
+
+6.  audit_logs
+
+Champs recommandés :
+
+-   id
+-   user_id
+-   action
+-   entity_type
+-   entity_id
+-   description
+-   created_at
+
+7.  dashboard_settings
+
+Champs recommandés :
+
+-   id
+-   setting_key
+-   setting_value
+-   description
+-   updated_by_user_id
+-   updated_at
+
+Cette table peut contenir :
+
+-   seuil taux paiement vert ;
+-   seuil taux paiement orange ;
+-   seuil taux recouvrement vert ;
+-   seuil taux recouvrement orange ;
+-   date de référence ;
+-   devise ;
+-   règles de segmentation.
+
+RÈGLES DE NETTOYAGE DES DONNÉES
+
+Lors de l’import, appliquer les règles suivantes.
+
+1.  EMAIL
+
+-   supprimer les espaces ;
+-   convertir en minuscules ;
+-   vérifier le format email ;
+-   créer email_normalise ;
+-   détecter les doublons sur email_normalise.
+
+2.  PAYS
+
+-   supprimer espaces inutiles ;
+-   harmoniser les noms ;
+-   créer pays_normalise ;
+-   créer zone_geographique : Afrique / Hors Afrique ;
+-   créer region_afrique si possible.
+
+3.  PLAN_ADHESION
+
+-   supprimer espaces ;
+-   harmoniser les libellés ;
+-   créer plan_adhesion_normalise ;
+-   créer categorie_membre : actif, affilié, individuel, honneur, autre ;
+-   créer sous_categorie_membre si possible.
+
+4.  MONTANT
+
+-   convertir en nombre ;
+-   remplacer les valeurs vides par 0 uniquement si cela est justifié ;
+-   signaler les montants vides ou incohérents.
+
+5.  A PAYE ?
+
+-   si valeur = OUI, alors statut_paiement = Payé ;
+-   sinon statut_paiement = Non payé / à vérifier.
+
+6.  EST ACTIVE ?
+
+-   si valeur = OUI, alors statut_activation = Actif ;
+-   sinon statut_activation = Non actif / à vérifier.
+
+7.  TYPE ADHESION
+
+-   subscribe = Nouvelle adhésion ;
+-   renew = Renouvellement ;
+-   autre ou vide = À vérifier.
+
+8.  MODE PAIEMENT
+
+-   os_offline = Paiement offline ;
+-   os_stripe = Paiement en ligne Stripe ;
+-   autre = À vérifier.
+
+9.  DATES
+
+-   convertir les dates Excel en dates valides ;
+-   contrôler les dates manquantes ;
+-   signaler paiement antérieur à inscription ;
+-   signaler comptabilisation antérieure au paiement ;
+-   calculer les délais.
+
+10. FLAGS D’ANOMALIES
+
+Créer automatiquement les indicateurs d’anomalie :
+
+-   doublon email ;
+-   doublon code membre ;
+-   doublon facture ;
+-   payé sans date paiement ;
+-   payé sans date comptabilité ;
+-   payé sans code membre ;
+-   payé mais non actif ;
+-   actif mais non payé ;
+-   pays manquant ;
+-   email invalide ;
+-   catégorie non standardisée ;
+-   montant invalide.
+
+KPI À CALCULER
+
+L’application doit calculer au minimum les KPI suivants.
+
+A. KPI portefeuille membres
+
+-   total inscriptions ;
+-   membres uniques ;
+-   membres avec code membre ;
+-   membres sans code membre ;
+-   membres actifs ;
+-   membres non actifs ;
+-   taux activation ;
+-   membres payés ;
+-   membres non payés ;
+-   taux paiement ;
+-   taux non-paiement ;
+-   membres payés et actifs ;
+-   membres payés, actifs et codifiés.
+
+B. KPI catégories d’adhésion
+
+-   membres par catégorie ;
+-   membres payés par catégorie ;
+-   membres non payés par catégorie ;
+-   taux paiement par catégorie ;
+-   montant attendu par catégorie ;
+-   montant payé par catégorie ;
+-   montant à recouvrer par catégorie ;
+-   part de chaque catégorie dans le portefeuille ;
+-   part de chaque catégorie dans les revenus ;
+-   catégories à fort volume mais faible paiement.
+
+C. KPI Afrique / hors Afrique
+
+-   membres Afrique ;
+-   membres hors Afrique ;
+-   membres Afrique payés ;
+-   membres hors Afrique payés ;
+-   membres Afrique non payés ;
+-   membres hors Afrique non payés ;
+-   taux paiement Afrique ;
+-   taux paiement hors Afrique ;
+-   revenus Afrique ;
+-   revenus hors Afrique ;
+-   part Afrique dans le portefeuille ;
+-   part hors Afrique dans le portefeuille.
+
+D. KPI géographiques
+
+-   nombre de pays représentés ;
+-   membres par pays ;
+-   membres payés par pays ;
+-   membres non payés par pays ;
+-   taux paiement par pays ;
+-   revenus par pays ;
+-   montant à recouvrer par pays ;
+-   top 10 pays par membres ;
+-   top 10 pays par revenus ;
+-   pays avec beaucoup d’inscrits mais peu de payés.
+
+E. KPI financiers et recouvrement
+
+-   montant total attendu ;
+-   montant total payé ;
+-   montant total à recouvrer ;
+-   taux recouvrement ;
+-   cotisation moyenne ;
+-   revenus par mode de paiement ;
+-   revenus par type d’adhésion ;
+-   revenus par mois ;
+-   créances par catégorie ;
+-   créances par pays ;
+-   top créances membres ;
+-   paiements non comptabilisés ;
+-   montant payé mais non comptabilisé.
+
+F. KPI paiement
+
+-   nombre de factures émises ;
+-   nombre de factures payées ;
+-   nombre de factures non payées ;
+-   taux paiement factures ;
+-   délai moyen inscription → paiement ;
+-   délai moyen paiement → comptabilité ;
+-   membres non payés depuis plus de 30 jours ;
+-   membres non payés depuis plus de 60 jours ;
+-   membres non payés depuis plus de 90 jours ;
+-   montant en souffrance par tranche d’âge ;
+-   part paiements offline ;
+-   part paiements Stripe.
+
+G. KPI renouvellement et fidélisation
+
+-   nouvelles adhésions ;
+-   renouvellements ;
+-   part renouvellements ;
+-   revenus nouvelles adhésions ;
+-   revenus renouvellements ;
+-   renouvellements par pays ;
+-   renouvellements par catégorie ;
+-   membres renouvelés mais non payés ;
+-   taux renouvellement apparent.
+
+H. KPI gouvernance
+
+-   membres payés et actifs ;
+-   membres institutionnels payés ;
+-   membres individuels payés ;
+-   membres affiliés payés ;
+-   représentativité par pays ;
+-   représentativité par catégorie ;
+-   représentativité Afrique / hors Afrique ;
+-   membres stratégiques non payés ;
+-   membres sans code membre ;
+-   membres potentiellement éligibles aux droits statutaires si les règles sont connues.
+
+I. KPI qualité des données
+
+-   taux complétude global ;
+-   taux complétude email ;
+-   taux complétude pays ;
+-   taux complétude code membre ;
+-   taux complétude date inscription ;
+-   taux complétude date paiement ;
+-   taux complétude date comptabilité ;
+-   nombre doublons email ;
+-   nombre doublons code membre ;
+-   nombre doublons facture ;
+-   emails invalides ;
+-   membres payés sans date paiement ;
+-   membres payés sans date comptabilité ;
+-   membres payés sans code membre ;
+-   membres payés mais non actifs ;
+-   membres actifs mais non payés ;
+-   score qualité global de la base.
+
+J. KPI risques
+
+-   risque non-recouvrement ;
+-   risque perte revenus ;
+-   risque doublons ;
+-   risque paiement non comptabilisé ;
+-   risque gouvernance basée sur données incomplètes ;
+-   risque concentration géographique ;
+-   risque concentration revenus ;
+-   risque faible renouvellement ;
+-   risque mauvaise classification membres.
+
+PAGES DU DASHBOARD À DÉVELOPPER
+
+PAGE 1 — Vue exécutive
+
+Objectif : Donner au Directeur Exécutif une vue globale et immédiate.
+
+Contenu :
+
+-   total inscriptions ;
+-   membres uniques ;
+-   membres payés ;
+-   membres non payés ;
+-   taux paiement ;
+-   montant payé ;
+-   montant à recouvrer ;
+-   taux recouvrement ;
+-   membres actifs ;
+-   pays représentés ;
+-   alertes critiques ;
+-   évolution mensuelle ;
+-   top pays ;
+-   top catégories.
+
+Visuels :
+
+-   cartes KPI ;
+-   graphique évolution mensuelle ;
+-   barres top pays ;
+-   barres top catégories ;
+-   tableau alertes critiques ;
+-   indicateur rouge/orange/vert.
+
+PAGE 2 — Portefeuille membres
+
+Contenu :
+
+-   membres par catégorie ;
+-   membres par statut paiement ;
+-   membres par statut activation ;
+-   membres par type adhésion ;
+-   membres avec ou sans code membre ;
+-   membres payés et actifs.
+
+Visuels :
+
+-   barres horizontales ;
+-   barres empilées ;
+-   tableau détaillé ;
+-   filtres par pays, catégorie, statut.
+
+PAGE 3 — Géographie
+
+Contenu :
+
+-   membres Afrique ;
+-   membres hors Afrique ;
+-   membres par pays ;
+-   revenus par pays ;
+-   taux paiement par pays ;
+-   top pays ;
+-   pays à fort potentiel de recouvrement.
+
+Visuels :
+
+-   carte géographique ;
+-   barres top 10 ;
+-   matrice pays / paiement ;
+-   tableau pays à relancer.
+
+PAGE 4 — Cotisations et recouvrement
+
+Contenu :
+
+-   montant attendu ;
+-   montant payé ;
+-   montant à recouvrer ;
+-   taux recouvrement ;
+-   recouvrement par catégorie ;
+-   recouvrement par pays ;
+-   créances par tranche d’âge ;
+-   paiements non comptabilisés.
+
+Visuels :
+
+-   cartes KPI ;
+-   waterfall attendu / payé / reste ;
+-   Pareto créances ;
+-   tableau membres à relancer ;
+-   barres par tranche 30 / 60 / 90 jours.
+
+PAGE 5 — Renouvellements et fidélisation
+
+Contenu :
+
+-   nouvelles adhésions ;
+-   renouvellements ;
+-   taux renouvellement apparent ;
+-   revenus renouvellements ;
+-   revenus nouvelles adhésions ;
+-   renouvellements par pays ;
+-   renouvellements par catégorie.
+
+Visuels :
+
+-   courbes ;
+-   barres groupées ;
+-   tableau des renouvellements à vérifier.
+
+PAGE 6 — Qualité des données
+
+Contenu :
+
+-   score qualité global ;
+-   doublons email ;
+-   doublons code membre ;
+-   doublons facture ;
+-   emails invalides ;
+-   champs manquants ;
+-   payés sans date comptable ;
+-   payés sans code membre ;
+-   actifs non payés ;
+-   payés non actifs.
+
+Visuels :
+
+-   cartes KPI ;
+-   heatmap complétude ;
+-   tableau anomalies ;
+-   filtres par gravité.
+
+PAGE 7 — Risques et alertes
+
+Contenu :
+
+-   risques majeurs ;
+-   criticité ;
+-   membres à risque ;
+-   pays à risque ;
+-   catégories à risque ;
+-   actions recommandées.
+
+Visuels :
+
+-   matrice de risque ;
+-   tableau alertes ;
+-   indicateurs rouge/orange/vert.
+
+PAGE 8 — Historique des uploads
+
+Contenu :
+
+-   liste des fichiers uploadés ;
+-   date upload ;
+-   utilisateur ;
+-   nombre de lignes ;
+-   nombre d’erreurs ;
+-   statut import ;
+-   fichier actif ;
+-   possibilité de consulter le détail ;
+-   possibilité d’activer un ancien fichier si nécessaire.
+
+Visuels :
+
+-   tableau historique ;
+-   badges statut ;
+-   bouton voir détail ;
+-   bouton activer comme fichier courant ;
+-   bouton archiver si autorisé.
+
+PAGE 9 — Administration
+
+Contenu :
+
+-   upload fichier Excel ;
+-   état du dernier import ;
+-   paramètres de seuil ;
+-   gestion utilisateurs si prévue ;
+-   logs d’activité.
+
+FILTRES GLOBAUX DU DASHBOARD
+
+Prévoir les filtres suivants :
+
+-   année ;
+-   mois ;
+-   pays ;
+-   zone géographique ;
+-   région africaine ;
+-   catégorie d’adhésion ;
+-   statut paiement ;
+-   statut activation ;
+-   type adhésion ;
+-   mode paiement ;
+-   tranche âge créance ;
+-   qualité des données ;
+-   fichier uploadé actif.
+
+API BACKEND À DÉVELOPPER
+
+Créer les endpoints suivants.
+
+Auth :
+
+-   POST /api/auth/login
+-   POST /api/auth/logout
+-   GET /api/auth/me
+
+Uploads :
+
+-   POST /api/uploads
+-   GET /api/uploads
+-   GET /api/uploads/:id
+-   POST /api/uploads/:id/activate
+-   POST /api/uploads/:id/archive
+-   GET /api/uploads/:id/errors
+
+Dashboard :
+
+-   GET /api/dashboard/summary
+-   GET /api/dashboard/members
+-   GET /api/dashboard/categories
+-   GET /api/dashboard/geography
+-   GET /api/dashboard/finance
+-   GET /api/dashboard/renewals
+-   GET /api/dashboard/data-quality
+-   GET /api/dashboard/risks
+-   GET /api/dashboard/alerts
+
+Admin :
+
+-   GET /api/admin/users
+-   POST /api/admin/users
+-   PATCH /api/admin/users/:id
+-   GET /api/admin/settings
+-   PATCH /api/admin/settings
+
+Export :
+
+-   GET /api/export/members
+-   GET /api/export/anomalies
+-   GET /api/export/kpi-summary
+
+MESURES ET CALCULS À IMPLÉMENTER
+
+Créer un service backend ou une couche SQL qui calcule les KPI.
+
+Les calculs doivent respecter ces règles :
+
+-   membres payés = lignes où statut_paiement = Payé ;
+-   membres non payés = lignes où statut_paiement ≠ Payé ;
+-   membres actifs = lignes où statut_activation = Actif ;
+-   membres uniques = distinct email_normalise ;
+-   montant payé = somme montant des membres payés ;
+-   montant à recouvrer = somme montant des membres non payés ;
+-   taux paiement = membres payés / total inscriptions ;
+-   taux recouvrement = montant payé / montant attendu ;
+-   taux activation = membres actifs / total inscriptions ;
+-   taux complétude email = lignes avec email / total lignes ;
+-   taux complétude code membre = lignes avec code membre / total lignes ;
+-   pays représentés = distinct pays_normalise ;
+-   membres Afrique = zone_geographique = Afrique ;
+-   membres hors Afrique = zone_geographique = Hors Afrique.
+
+RÈGLES DE MISE EN FORME CONDITIONNELLE
+
+Appliquer les seuils suivants par défaut.
+
+Taux paiement :
+
+-   vert si >= 80 %
+-   orange si entre 60 % et 79 %
+-   rouge si < 60 %
+
+Taux recouvrement :
+
+-   vert si >= 85 %
+-   orange si entre 65 % et 84 %
+-   rouge si < 65 %
+
+Taux activation :
+
+-   vert si >= 80 %
+-   orange si entre 60 % et 79 %
+-   rouge si < 60 %
+
+Doublons email :
+
+-   vert si 0
+-   orange si entre 1 et 10
+-   rouge si > 10
+
+Paiements non comptabilisés :
+
+-   vert si 0
+-   orange si entre 1 et 10
+-   rouge si > 10
+
+Créances anciennes de plus de 90 jours :
+
+-   vert si < 5 %
+-   orange si entre 5 % et 15 %
+-   rouge si > 15 %
+
+ALERTES AUTOMATIQUES À PRÉVOIR
+
+Créer une liste d’alertes générées automatiquement :
+
+1.  Membre payé mais non actif.
+2.  Membre actif mais non payé.
+3.  Membre payé sans date de paiement.
+4.  Membre payé sans date comptabilité.
+5.  Membre payé sans code membre.
+6.  Email invalide.
+7.  Doublon email.
+8.  Doublon code membre.
+9.  Doublon facture.
+10. Paiement comptabilisé avant paiement.
+11. Paiement antérieur à inscription.
+12. Pays non reconnu.
+13. Catégorie non reconnue.
+14. Créance de plus de 90 jours.
+15. Montant nul ou invalide.
+16. Membre sans pays.
+17. Membre sans email.
+18. Fichier importé avec colonnes manquantes.
+
+INTERFACE UTILISATEUR ATTENDUE
+
+L’application doit avoir un design professionnel, moderne, sobre et institutionnel.
+
+Style visuel recommandé :
+
+-   interface claire ;
+-   navigation latérale ;
+-   en-tête avec nom de l’application ;
+-   couleurs inspirées AAEA : bleu, cyan, vert, violet institutionnel ;
+-   cartes KPI lisibles ;
+-   tableaux propres ;
+-   badges de statut ;
+-   filtres bien visibles ;
+-   graphiques sobres ;
+-   alertes rouge/orange/vert ;
+-   responsive desktop en priorité ;
+-   compatible tablette si possible.
+
+Nom possible de l’application :
+
+AAEA Membership Dashboard
+
+ou
+
+AfWASA Membership Intelligence
+
+ou
+
+Plateforme de Pilotage des Membres AAEA
+
+SÉCURITÉ
+
+Respecter les règles suivantes :
+
+-   mots de passe hashés ;
+-   jamais de mot de passe en clair ;
+-   protection des routes admin ;
+-   vérification du rôle utilisateur ;
+-   limitation des types de fichiers uploadés ;
+-   accepter uniquement .xlsx ou .xls selon choix ;
+-   limiter la taille maximale du fichier ;
+-   empêcher l’exécution de contenu malveillant ;
+-   journaliser les imports ;
+-   journaliser les connexions ;
+-   afficher des messages d’erreur clairs sans exposer les détails sensibles ;
+-   prévoir une variable d’environnement pour les secrets.
+
+VALIDATION DU FICHIER EXCEL
+
+Avant d’importer, vérifier :
+
+1.  Que le fichier est bien un fichier Excel.
+2.  Que la feuille INSCRIPTIONS ET ADHESIONS existe.
+3.  Que les colonnes obligatoires sont présentes.
+4.  Que les colonnes critiques ne sont pas complètement vides.
+5.  Que le nombre de lignes est supérieur à 0.
+6.  Que les dates sont lisibles.
+7.  Que les montants sont convertibles.
+8.  Que les statuts sont interprétables.
+
+Si le fichier est invalide :
+
+-   bloquer l’import ;
+-   afficher les erreurs ;
+-   enregistrer l’échec dans uploaded_files ;
+-   ne pas remplacer le dataset actif.
+
+Si le fichier est valide :
+
+-   enregistrer le fichier ;
+-   créer une entrée dans uploaded_files ;
+-   importer les lignes brutes ;
+-   créer les lignes nettoyées ;
+-   calculer les anomalies ;
+-   recalculer les KPI ;
+-   permettre d’activer ce fichier comme dataset courant.
+
+HISTORIQUE DES FICHIERS UPLOADÉS
+
+Créer une page dédiée contenant :
+
+-   nom du fichier ;
+-   date upload ;
+-   utilisateur ;
+-   taille du fichier ;
+-   nombre de lignes ;
+-   nombre de colonnes ;
+-   nombre d’erreurs ;
+-   statut : succès, échec, archivé, actif ;
+-   bouton voir détails ;
+-   bouton voir erreurs ;
+-   bouton activer ;
+-   bouton archiver ;
+-   badge fichier actif.
+
+Un seul fichier doit être actif à la fois pour alimenter le dashboard principal.
+
+Prévoir la possibilité de comparer plus tard deux imports successifs.
+
+FONCTIONNALITÉS OPTIONNELLES À PRÉVOIR EN V2
+
+Prévoir une architecture permettant d’ajouter plus tard :
+
+-   comparaison entre deux fichiers uploadés ;
+-   évolution des KPI entre deux imports ;
+-   notification email après import ;
+-   export PDF du rapport Direction Exécutive ;
+-   export Excel des membres non payés ;
+-   export Excel des anomalies ;
+-   gestion avancée des rôles ;
+-   journal de relance des membres ;
+-   statut de relance ;
+-   commentaires sur les membres ;
+-   affectation d’un responsable de relance ;
+-   scoring de priorité de recouvrement ;
+-   module prospects ;
+-   module prévision de revenus ;
+-   intégration Power BI ou API externe ;
+-   sauvegarde automatique.
+
+TODOLIST DE DÉVELOPPEMENT À RESPECTER
+
+PHASE 0 — Cadrage technique
+
+-   Lire entièrement cette spécification.
+
+-   Identifier la stack retenue.
+
+-   Initialiser le projet.
+
+-   Créer la structure des dossiers.
+
+-   Configurer TypeScript.
+
+-   Configurer les variables d’environnement.
+
+-   Configurer la base de données.
+
+-   Configurer l’ORM.
+
+-   Créer un README initial.
+
+PHASE 1 — Base de données
+
+-   Créer le modèle users.
+
+-   Créer le modèle uploaded_files.
+
+-   Créer le modèle adhesion_records_raw.
+
+-   Créer le modèle adhesion_records_clean.
+
+-   Créer le modèle import_errors.
+
+-   Créer le modèle audit_logs.
+
+-   Créer le modèle dashboard_settings.
+
+-   Générer les migrations.
+
+-   Créer un utilisateur admin par défaut.
+
+-   Tester la connexion à la base.
+
+PHASE 2 — Authentification
+
+-   Créer la page login.
+
+-   Créer la logique de connexion.
+
+-   Hasher les mots de passe.
+
+-   Gérer les sessions.
+
+-   Protéger les routes admin.
+
+-   Protéger les routes dashboard.
+
+-   Gérer la déconnexion.
+
+-   Afficher l’utilisateur connecté.
+
+-   Ajouter la gestion des rôles admin / lecteur.
+
+PHASE 3 — Upload Excel
+
+-   Créer l’interface d’upload.
+
+-   Restreindre les formats acceptés.
+
+-   Limiter la taille du fichier.
+
+-   Enregistrer le fichier uploadé.
+
+-   Créer l’entrée uploaded_files.
+
+-   Lire le fichier avec une librairie Excel.
+
+-   Vérifier l’existence de la feuille INSCRIPTIONS ET ADHESIONS.
+
+-   Vérifier les colonnes obligatoires.
+
+-   Gérer les erreurs d’import.
+
+-   Afficher un résumé de l’import.
+
+PHASE 4 — Import brut
+
+-   Lire toutes les lignes du fichier.
+
+-   Créer les lignes adhesion_records_raw.
+
+-   Conserver le numéro de ligne Excel.
+
+-   Conserver les valeurs originales.
+
+-   Stocker aussi la ligne complète en JSON brut.
+
+-   Compter les lignes importées.
+
+-   Signaler les lignes vides.
+
+PHASE 5 — Nettoyage et normalisation
+
+-   Normaliser les emails.
+
+-   Valider les emails.
+
+-   Normaliser les pays.
+
+-   Créer zone Afrique / hors Afrique.
+
+-   Créer région africaine.
+
+-   Normaliser les catégories d’adhésion.
+
+-   Normaliser les modes de paiement.
+
+-   Normaliser les types d’adhésion.
+
+-   Normaliser les statuts paiement.
+
+-   Normaliser les statuts activation.
+
+-   Convertir les montants.
+
+-   Convertir les dates.
+
+-   Calculer les délais.
+
+-   Calculer les montants payés.
+
+-   Calculer les montants à recouvrer.
+
+-   Créer les lignes adhesion_records_clean.
+
+PHASE 6 — Détection des anomalies
+
+-   Détecter les doublons email.
+
+-   Détecter les doublons code membre.
+
+-   Détecter les doublons facture.
+
+-   Détecter les emails invalides.
+
+-   Détecter les pays manquants.
+
+-   Détecter les catégories non reconnues.
+
+-   Détecter les membres payés sans date paiement.
+
+-   Détecter les membres payés sans date comptabilité.
+
+-   Détecter les membres payés sans code membre.
+
+-   Détecter les membres payés mais non actifs.
+
+-   Détecter les membres actifs mais non payés.
+
+-   Détecter les dates incohérentes.
+
+-   Enregistrer les erreurs dans import_errors.
+
+-   Calculer un score qualité ligne.
+
+-   Calculer un score qualité global.
+
+PHASE 7 — Calcul des KPI
+
+-   Créer les fonctions de calcul KPI globaux.
+
+-   Créer les KPI portefeuille.
+
+-   Créer les KPI paiement.
+
+-   Créer les KPI financiers.
+
+-   Créer les KPI catégories.
+
+-   Créer les KPI pays.
+
+-   Créer les KPI Afrique / hors Afrique.
+
+-   Créer les KPI renouvellements.
+
+-   Créer les KPI qualité.
+
+-   Créer les KPI risques.
+
+-   Créer les endpoints API dashboard.
+
+-   Tester chaque KPI avec des données connues.
+
+PHASE 8 — Interface dashboard
+
+-   Créer le layout principal.
+
+-   Créer la navigation latérale.
+
+-   Créer le header.
+
+-   Créer les composants cartes KPI.
+
+-   Créer les composants graphiques.
+
+-   Créer les composants tableaux.
+
+-   Créer les composants badges.
+
+-   Créer les filtres globaux.
+
+-   Créer la page Vue exécutive.
+
+-   Créer la page Portefeuille membres.
+
+-   Créer la page Géographie.
+
+-   Créer la page Cotisations et recouvrement.
+
+-   Créer la page Renouvellements.
+
+-   Créer la page Qualité des données.
+
+-   Créer la page Risques et alertes.
+
+-   Créer la page Historique des uploads.
+
+-   Créer la page Administration.
+
+PHASE 9 — Historique uploads
+
+-   Afficher la liste des fichiers uploadés.
+
+-   Afficher le statut de chaque import.
+
+-   Afficher la date d’upload.
+
+-   Afficher l’utilisateur ayant uploadé.
+
+-   Afficher le nombre de lignes.
+
+-   Afficher le nombre d’erreurs.
+
+-   Afficher le fichier actif.
+
+-   Créer le bouton voir détails.
+
+-   Créer le bouton voir erreurs.
+
+-   Créer le bouton activer fichier.
+
+-   Créer le bouton archiver fichier.
+
+-   Empêcher plusieurs fichiers actifs simultanément.
+
+PHASE 10 — Alertes et règles visuelles
+
+-   Implémenter les seuils rouge/orange/vert.
+
+-   Afficher les alertes critiques.
+
+-   Afficher les badges de gravité.
+
+-   Créer les tableaux d’anomalies.
+
+-   Ajouter les couleurs conditionnelles.
+
+-   Ajouter les messages de risque.
+
+-   Ajouter les recommandations automatiques simples.
+
+PHASE 11 — Tests
+
+-   Tester login valide.
+
+-   Tester login invalide.
+
+-   Tester upload fichier valide.
+
+-   Tester upload fichier invalide.
+
+-   Tester fichier sans feuille attendue.
+
+-   Tester fichier avec colonnes manquantes.
+
+-   Tester doublons email.
+
+-   Tester membres payés sans date comptabilité.
+
+-   Tester calcul taux paiement.
+
+-   Tester calcul montant payé.
+
+-   Tester calcul montant à recouvrer.
+
+-   Tester dashboard avec filtres.
+
+-   Tester historique uploads.
+
+-   Tester activation ancien fichier.
+
+-   Tester droits admin / lecteur.
+
+-   Tester responsive.
+
+PHASE 12 — Finalisation
+
+-   Nettoyer le code.
+
+-   Ajouter commentaires utiles.
+
+-   Ajouter README complet.
+
+-   Documenter l’installation.
+
+-   Documenter les variables d’environnement.
+
+-   Documenter le format du fichier Excel attendu.
+
+-   Documenter les règles de calcul des KPI.
+
+-   Documenter les limites connues.
+
+-   Préparer la version déployable.
+
+-   Vérifier la sécurité.
+
+-   Vérifier les performances.
+
+-   Livrer l’application fonctionnelle.
+
+CRITÈRES D’ACCEPTATION
+
+L’application sera considérée comme réussie si :
+
+1.  Un administrateur peut se connecter.
+2.  Un administrateur peut uploader le fichier Excel template.
+3.  L’application valide la structure du fichier.
+4.  Les données sont importées.
+5.  Les données sont nettoyées.
+6.  Les KPI sont calculés automatiquement.
+7.  Le dashboard affiche les indicateurs principaux.
+8.  L’historique des fichiers uploadés est visible.
+9.  Un seul fichier actif alimente le dashboard.
+10. Les anomalies sont détectées et affichées.
+11. Les pages principales du dashboard fonctionnent.
+12. Les filtres fonctionnent.
+13. Les rôles admin et lecteur sont respectés.
+14. Les erreurs sont bien gérées.
+15. L’interface est professionnelle, claire et exploitable.
+
+LIVRABLES ATTENDUS
+
+À la fin du développement, fournir :
+
+1.  Le code source complet.
+2.  Le schéma de base de données.
+3.  Les scripts de migration.
+4.  Le système d’authentification.
+5.  Le module upload Excel.
+6.  Le module import et nettoyage.
+7.  Le module calcul KPI.
+8.  Le dashboard complet.
+9.  La page historique des uploads.
+10. La page qualité des données.
+11. La page risques et alertes.
+12. Le README d’installation.
+13. Les identifiants admin de test.
+14. Les consignes de déploiement.
+15. Les limites et améliorations possibles.
+
+MÉTHODE DE TRAVAIL IMPOSÉE À L’AGENT IA
+
+Ne code pas toute l’application d’un seul bloc sans organisation.
+
+Procède étape par étape :
+
+1.  Commencer par proposer l’architecture technique.
+2.  Créer la structure projet.
+3.  Créer la base de données.
+4.  Créer l’authentification.
+5.  Créer l’upload Excel.
+6.  Créer l’import brut.
+7.  Créer le nettoyage.
+8.  Créer les KPI.
+9.  Créer le dashboard.
+10. Créer l’historique.
+11. Créer les alertes.
+12. Tester.
+13. Corriger.
+14. Documenter.
+15. Préparer le déploiement.
+
+À chaque phase :
+
+-   afficher les fichiers créés ;
+-   expliquer brièvement le rôle de chaque fichier ;
+-   vérifier que le code compile ;
+-   vérifier que les fonctionnalités fonctionnent ;
+-   ne pas passer à la phase suivante si la phase actuelle est cassée ;
+-   proposer les commandes à exécuter ;
+-   signaler les erreurs possibles et leur correction.
+
+OBJECTIF FINAL
+
+Créer une application web professionnelle permettant à l’AAEA de passer d’un simple fichier Excel à une plateforme complète de pilotage membership.
+
+L’application doit permettre au Directeur Exécutif et aux équipes de suivre :
+
+-   le portefeuille membres ;
+-   les paiements ;
+-   les cotisations ;
+-   le recouvrement ;
+-   les renouvellements ;
+-   les pays représentés ;
+-   les catégories d’adhésion ;
+-   les membres actifs ;
+-   les membres non payés ;
+-   les anomalies ;
+-   la qualité des données ;
+-   les risques ;
+-   l’historique des fichiers uploadés ;
+-   les actions prioritaires.
+
+Le résultat attendu est une application claire, moderne, sécurisée, évolutive et directement exploitable pour la gouvernance et la gestion complète des membres de l’Association Africaine de l’Eau et de l’Assainissement.

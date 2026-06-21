@@ -1,0 +1,1421 @@
+     1→TU ES UN AGENT IA FULLSTACK SENIOR, EXPERT EN DÉVELOPPEMENT WEB, DATA DASHBOARD, BUSINESS INTELLIGENCE, AUTHENTIFICATION, BASE DE DONNÉES, IMPORT EXCEL, API BACKEND, FRONTEND MODERNE, UI/UX ET DÉPLOIEMENT.
+     2→
+     3→Tu dois développer une application web complète permettant à l’Association Africaine de l’Eau et de l’Assainissement, AAEA / AfWASA, de piloter ses membres à partir d’un fichier Excel template régulièrement uploadé par l’administration.
+     4→
+     5→L’application doit fonctionner comme un tableau de bord complet des membres, cotisations, paiements, recouvrements, catégories, pays, qualité des données, risques et historique des fichiers importés.
+     6→
+     7→CONTEXTE MÉTIER
+     8→
+     9→L’AAEA dispose d’un fichier Excel template nommé généralement :
+    10→
+    11→20260617 LISTE DES INSCRIPTIONS ET POTENTIELS_TEMPLATE.xlsx
+    12→
+    13→La feuille principale à exploiter est :
+    14→
+    15→INSCRIPTIONS ET ADHESIONS
+    16→
+    17→Les colonnes attendues dans cette feuille sont :
+    18→
+    19→-   PLAN_ADHESION
+    20→-   SOCIETE / INSTITUTION / UNIVERSITE
+    21→-   PAYS
+    22→-   EMAIL
+    23→-   MONTANT
+    24→-   DATE INSCRIPTION
+    25→-   NUM FACTURE
+    26→-   MODE PAIEMENT
+    27→-   DATE PAIEMENT / ACTIVATION
+    28→-   ID
+    29→-   EST ACTIVE ?
+    30→-   TYPE ADHESION
+    31→-   CODE MEMBRE
+    32→-   DATE PAIEMENT COMPTABILITE
+    33→-   A PAYE ?
+    34→
+    35→L’application doit permettre de charger ce fichier Excel à chaque mise à jour de la base membres. Après chaque upload, le dashboard doit être recalculé automatiquement.
+    36→
+    37→OBJECTIF PRINCIPAL DE L’APPLICATION
+    38→
+    39→Créer une application web sécurisée qui permet de :
+    40→
+    41→1.  Se connecter avec login et mot de passe.
+    42→2.  Uploader le fichier Excel template.
+    43→3.  Valider la structure du fichier.
+    44→4.  Lire automatiquement les données de la feuille INSCRIPTIONS ET ADHESIONS.
+    45→5.  Nettoyer et normaliser les données.
+    46→6.  Calculer tous les KPI membership.
+    47→7.  Afficher un dashboard complet et professionnel.
+    48→8.  Suivre l’historique des fichiers uploadés.
+    49→9.  Gérer les erreurs de fichier et les anomalies.
+    50→10. Exporter ou consulter les statistiques.
+    51→11. Séparer l’espace administration de l’espace consultation.
+    52→12. Donner au Directeur Exécutif une vue claire, synthétique et décisionnelle.
+    53→
+    54→STACK TECHNIQUE RECOMMANDÉE
+    55→
+    56→Utiliser une stack moderne, robuste et simple à maintenir.
+    57→
+    58→Stack recommandée :
+    59→
+    60→-   Frontend : Next.js ou React
+    61→-   Langage : TypeScript
+    62→-   UI : Tailwind CSS avec composants modernes
+    63→-   Graphiques : Recharts, Chart.js, ECharts ou équivalent
+    64→-   Backend : API intégrée Next.js ou Node.js / Express / NestJS
+    65→-   Base de données : PostgreSQL de préférence, ou SQLite pour MVP local
+    66→-   ORM : Prisma ou équivalent
+    67→-   Authentification : Auth.js / NextAuth, JWT ou session sécurisée
+    68→-   Upload Excel : SheetJS / xlsx ou librairie équivalente
+    69→-   Validation : Zod ou équivalent
+    70→-   Sécurité mot de passe : bcrypt ou équivalent
+    71→-   Déploiement possible : Vercel, Render, Railway, VPS ou serveur interne
+    72→
+    73→Ne pas imposer une version précise des librairies sans vérification. Utiliser les versions stables au moment du développement.
+    74→
+    75→ARCHITECTURE GÉNÉRALE ATTENDUE
+    76→
+    77→L’application doit contenir deux grands espaces.
+    78→
+    79→1.  ESPACE ADMINISTRATION
+    80→
+    81→Accessible uniquement après connexion.
+    82→
+    83→Fonctionnalités attendues :
+    84→
+    85→-   page de connexion ;
+    86→-   gestion de session ;
+    87→-   upload du fichier Excel ;
+    88→-   validation de la structure du fichier ;
+    89→-   affichage du résultat de l’import ;
+    90→-   historique des fichiers uploadés ;
+    91→-   consultation des erreurs d’import ;
+    92→-   activation d’un fichier comme source de données officielle ;
+    93→-   suppression ou archivage logique d’un import si nécessaire ;
+    94→-   visualisation des anomalies détectées ;
+    95→-   gestion minimale des utilisateurs si possible.
+    96→
+    97→2.  ESPACE DASHBOARD
+    98→
+    99→Accessible aux utilisateurs autorisés.
+   100→
+   101→Fonctionnalités attendues :
+   102→
+   103→-   vue exécutive ;
+   104→-   indicateurs globaux ;
+   105→-   analyse des membres ;
+   106→-   analyse des paiements ;
+   107→-   analyse des cotisations ;
+   108→-   analyse Afrique / hors Afrique ;
+   109→-   analyse par pays ;
+   110→-   analyse par catégorie d’adhésion ;
+   111→-   analyse des renouvellements ;
+   112→-   analyse qualité des données ;
+   113→-   alertes et risques ;
+   114→-   filtres dynamiques ;
+   115→-   tableaux détaillés ;
+   116→-   graphiques interactifs.
+   117→
+   118→RÔLES UTILISATEURS
+   119→
+   120→Prévoir au minimum deux rôles :
+   121→
+   122→1.  Administrateur
+   123→
+   124→Droits :
+   125→
+   126→-   se connecter ;
+   127→-   uploader un fichier Excel ;
+   128→-   consulter l’historique des uploads ;
+   129→-   activer un fichier comme base courante ;
+   130→-   consulter les erreurs ;
+   131→-   accéder au dashboard ;
+   132→-   exporter les données si la fonctionnalité est développée.
+   133→
+   134→2.  Lecteur / Direction
+   135→
+   136→Droits :
+   137→
+   138→-   se connecter ;
+   139→-   consulter le dashboard ;
+   140→-   utiliser les filtres ;
+   141→-   consulter les statistiques ;
+   142→-   ne pas uploader de fichier ;
+   143→-   ne pas modifier les paramètres.
+   144→
+   145→Prévoir la possibilité d’ajouter plus tard d’autres rôles :
+   146→
+   147→-   Finance ;
+   148→-   Membership ;
+   149→-   Direction Exécutive ;
+   150→-   Super Admin.
+   151→
+   152→MODÈLE DE DONNÉES RECOMMANDÉ
+   153→
+   154→Créer les tables suivantes.
+   155→
+   156→1.  users
+   157→
+   158→Champs recommandés :
+   159→
+   160→-   id
+   161→-   name
+   162→-   email
+   163→-   password_hash
+   164→-   role
+   165→-   is_active
+   166→-   created_at
+   167→-   updated_at
+   168→-   last_login_at
+   169→
+   170→2.  uploaded_files
+   171→
+   172→Cette table doit conserver l’historique des fichiers chargés.
+   173→
+   174→Champs recommandés :
+   175→
+   176→-   id
+   177→-   original_filename
+   178→-   stored_filename
+   179→-   file_path
+   180→-   uploaded_by_user_id
+   181→-   uploaded_at
+   182→-   file_size
+   183→-   file_hash
+   184→-   sheet_name
+   185→-   total_rows
+   186→-   total_columns
+   187→-   valid_rows
+   188→-   invalid_rows
+   189→-   import_status : pending, success, failed, archived
+   190→-   is_active_dataset
+   191→-   error_message
+   192→-   notes
+   193→
+   194→3.  adhesion_records_raw
+   195→
+   196→Cette table conserve les lignes brutes importées depuis Excel.
+   197→
+   198→Champs recommandés :
+   199→
+   200→-   id
+   201→-   upload_id
+   202→-   row_number
+   203→-   plan_adhesion
+   204→-   societe_institution_universite
+   205→-   pays
+   206→-   email
+   207→-   montant
+   208→-   date_inscription
+   209→-   num_facture
+   210→-   mode_paiement
+   211→-   date_paiement_activation
+   212→-   source_id
+   213→-   est_active
+   214→-   type_adhesion
+   215→-   code_membre
+   216→-   date_paiement_comptabilite
+   217→-   a_paye
+   218→-   raw_json
+   219→-   created_at
+   220→
+   221→4.  adhesion_records_clean
+   222→
+   223→Cette table conserve les données nettoyées et normalisées.
+   224→
+   225→Champs recommandés :
+   226→
+   227→-   id
+   228→-   upload_id
+   229→-   raw_record_id
+   230→-   plan_adhesion_original
+   231→-   plan_adhesion_normalise
+   232→-   categorie_membre
+   233→-   sous_categorie_membre
+   234→-   societe_originale
+   235→-   societe_normalisee
+   236→-   pays_original
+   237→-   pays_normalise
+   238→-   zone_geographique : Afrique / Hors Afrique
+   239→-   region_afrique
+   240→-   email_original
+   241→-   email_normalise
+   242→-   email_valide
+   243→-   montant
+   244→-   date_inscription
+   245→-   num_facture
+   246→-   mode_paiement_original
+   247→-   mode_paiement_normalise
+   248→-   date_paiement_activation
+   249→-   source_id
+   250→-   statut_activation
+   251→-   type_adhesion_original
+   252→-   type_adhesion_normalise
+   253→-   code_membre
+   254→-   date_paiement_comptabilite
+   255→-   statut_paiement
+   256→-   montant_paye
+   257→-   montant_a_recouvrer
+   258→-   delai_inscription_paiement_jours
+   259→-   delai_paiement_comptabilite_jours
+   260→-   age_creance_jours
+   261→-   tranche_age_creance
+   262→-   flag_doublon_email
+   263→-   flag_doublon_code_membre
+   264→-   flag_doublon_facture
+   265→-   flag_paye_sans_date_paiement
+   266→-   flag_paye_sans_date_compta
+   267→-   flag_paye_sans_code_membre
+   268→-   flag_paye_non_actif
+   269→-   flag_actif_non_paye
+   270→-   score_qualite_ligne
+   271→-   created_at
+   272→
+   273→5.  import_errors
+   274→
+   275→Champs recommandés :
+   276→
+   277→-   id
+   278→-   upload_id
+   279→-   row_number
+   280→-   column_name
+   281→-   error_type
+   282→-   error_message
+   283→-   severity : mineur, important, bloquant
+   284→-   created_at
+   285→
+   286→6.  audit_logs
+   287→
+   288→Champs recommandés :
+   289→
+   290→-   id
+   291→-   user_id
+   292→-   action
+   293→-   entity_type
+   294→-   entity_id
+   295→-   description
+   296→-   created_at
+   297→
+   298→7.  dashboard_settings
+   299→
+   300→Champs recommandés :
+   301→
+   302→-   id
+   303→-   setting_key
+   304→-   setting_value
+   305→-   description
+   306→-   updated_by_user_id
+   307→-   updated_at
+   308→
+   309→Cette table peut contenir :
+   310→
+   311→-   seuil taux paiement vert ;
+   312→-   seuil taux paiement orange ;
+   313→-   seuil taux recouvrement vert ;
+   314→-   seuil taux recouvrement orange ;
+   315→-   date de référence ;
+   316→-   devise ;
+   317→-   règles de segmentation.
+   318→
+   319→RÈGLES DE NETTOYAGE DES DONNÉES
+   320→
+   321→Lors de l’import, appliquer les règles suivantes.
+   322→
+   323→1.  EMAIL
+   324→
+   325→-   supprimer les espaces ;
+   326→-   convertir en minuscules ;
+   327→-   vérifier le format email ;
+   328→-   créer email_normalise ;
+   329→-   détecter les doublons sur email_normalise.
+   330→
+   331→2.  PAYS
+   332→
+   333→-   supprimer espaces inutiles ;
+   334→-   harmoniser les noms ;
+   335→-   créer pays_normalise ;
+   336→-   créer zone_geographique : Afrique / Hors Afrique ;
+   337→-   créer region_afrique si possible.
+   338→
+   339→3.  PLAN_ADHESION
+   340→
+   341→-   supprimer espaces ;
+   342→-   harmoniser les libellés ;
+   343→-   créer plan_adhesion_normalise ;
+   344→-   créer categorie_membre : actif, affilié, individuel, honneur, autre ;
+   345→-   créer sous_categorie_membre si possible.
+   346→
+   347→4.  MONTANT
+   348→
+   349→-   convertir en nombre ;
+   350→-   remplacer les valeurs vides par 0 uniquement si cela est justifié ;
+   351→-   signaler les montants vides ou incohérents.
+   352→
+   353→5.  A PAYE ?
+   354→
+   355→-   si valeur = OUI, alors statut_paiement = Payé ;
+   356→-   sinon statut_paiement = Non payé / à vérifier.
+   357→
+   358→6.  EST ACTIVE ?
+   359→
+   360→-   si valeur = OUI, alors statut_activation = Actif ;
+   361→-   sinon statut_activation = Non actif / à vérifier.
+   362→
+   363→7.  TYPE ADHESION
+   364→
+   365→-   subscribe = Nouvelle adhésion ;
+   366→-   renew = Renouvellement ;
+   367→-   autre ou vide = À vérifier.
+   368→
+   369→8.  MODE PAIEMENT
+   370→
+   371→-   os_offline = Paiement offline ;
+   372→-   os_stripe = Paiement en ligne Stripe ;
+   373→-   autre = À vérifier.
+   374→
+   375→9.  DATES
+   376→
+   377→-   convertir les dates Excel en dates valides ;
+   378→-   contrôler les dates manquantes ;
+   379→-   signaler paiement antérieur à inscription ;
+   380→-   signaler comptabilisation antérieure au paiement ;
+   381→-   calculer les délais.
+   382→
+   383→10. FLAGS D’ANOMALIES
+   384→
+   385→Créer automatiquement les indicateurs d’anomalie :
+   386→
+   387→-   doublon email ;
+   388→-   doublon code membre ;
+   389→-   doublon facture ;
+   390→-   payé sans date paiement ;
+   391→-   payé sans date comptabilité ;
+   392→-   payé sans code membre ;
+   393→-   payé mais non actif ;
+   394→-   actif mais non payé ;
+   395→-   pays manquant ;
+   396→-   email invalide ;
+   397→-   catégorie non standardisée ;
+   398→-   montant invalide.
+   399→
+   400→KPI À CALCULER
+   401→
+   402→L’application doit calculer au minimum les KPI suivants.
+   403→
+   404→A. KPI portefeuille membres
+   405→
+   406→-   total inscriptions ;
+   407→-   membres uniques ;
+   408→-   membres avec code membre ;
+   409→-   membres sans code membre ;
+   410→-   membres actifs ;
+   411→-   membres non actifs ;
+   412→-   taux activation ;
+   413→-   membres payés ;
+   414→-   membres non payés ;
+   415→-   taux paiement ;
+   416→-   taux non-paiement ;
+   417→-   membres payés et actifs ;
+   418→-   membres payés, actifs et codifiés.
+   419→
+   420→B. KPI catégories d’adhésion
+   421→
+   422→-   membres par catégorie ;
+   423→-   membres payés par catégorie ;
+   424→-   membres non payés par catégorie ;
+   425→-   taux paiement par catégorie ;
+   426→-   montant attendu par catégorie ;
+   427→-   montant payé par catégorie ;
+   428→-   montant à recouvrer par catégorie ;
+   429→-   part de chaque catégorie dans le portefeuille ;
+   430→-   part de chaque catégorie dans les revenus ;
+   431→-   catégories à fort volume mais faible paiement.
+   432→
+   433→C. KPI Afrique / hors Afrique
+   434→
+   435→-   membres Afrique ;
+   436→-   membres hors Afrique ;
+   437→-   membres Afrique payés ;
+   438→-   membres hors Afrique payés ;
+   439→-   membres Afrique non payés ;
+   440→-   membres hors Afrique non payés ;
+   441→-   taux paiement Afrique ;
+   442→-   taux paiement hors Afrique ;
+   443→-   revenus Afrique ;
+   444→-   revenus hors Afrique ;
+   445→-   part Afrique dans le portefeuille ;
+   446→-   part hors Afrique dans le portefeuille.
+   447→
+   448→D. KPI géographiques
+   449→
+   450→-   nombre de pays représentés ;
+   451→-   membres par pays ;
+   452→-   membres payés par pays ;
+   453→-   membres non payés par pays ;
+   454→-   taux paiement par pays ;
+   455→-   revenus par pays ;
+   456→-   montant à recouvrer par pays ;
+   457→-   top 10 pays par membres ;
+   458→-   top 10 pays par revenus ;
+   459→-   pays avec beaucoup d’inscrits mais peu de payés.
+   460→
+   461→E. KPI financiers et recouvrement
+   462→
+   463→-   montant total attendu ;
+   464→-   montant total payé ;
+   465→-   montant total à recouvrer ;
+   466→-   taux recouvrement ;
+   467→-   cotisation moyenne ;
+   468→-   revenus par mode de paiement ;
+   469→-   revenus par type d’adhésion ;
+   470→-   revenus par mois ;
+   471→-   créances par catégorie ;
+   472→-   créances par pays ;
+   473→-   top créances membres ;
+   474→-   paiements non comptabilisés ;
+   475→-   montant payé mais non comptabilisé.
+   476→
+   477→F. KPI paiement
+   478→
+   479→-   nombre de factures émises ;
+   480→-   nombre de factures payées ;
+   481→-   nombre de factures non payées ;
+   482→-   taux paiement factures ;
+   483→-   délai moyen inscription → paiement ;
+   484→-   délai moyen paiement → comptabilité ;
+   485→-   membres non payés depuis plus de 30 jours ;
+   486→-   membres non payés depuis plus de 60 jours ;
+   487→-   membres non payés depuis plus de 90 jours ;
+   488→-   montant en souffrance par tranche d’âge ;
+   489→-   part paiements offline ;
+   490→-   part paiements Stripe.
+   491→
+   492→G. KPI renouvellement et fidélisation
+   493→
+   494→-   nouvelles adhésions ;
+   495→-   renouvellements ;
+   496→-   part renouvellements ;
+   497→-   revenus nouvelles adhésions ;
+   498→-   revenus renouvellements ;
+   499→-   renouvellements par pays ;
+   500→-   renouvellements par catégorie ;
+   501→-   membres renouvelés mais non payés ;
+   502→-   taux renouvellement apparent.
+   503→
+   504→H. KPI gouvernance
+   505→
+   506→-   membres payés et actifs ;
+   507→-   membres institutionnels payés ;
+   508→-   membres individuels payés ;
+   509→-   membres affiliés payés ;
+   510→-   représentativité par pays ;
+   511→-   représentativité par catégorie ;
+   512→-   représentativité Afrique / hors Afrique ;
+   513→-   membres stratégiques non payés ;
+   514→-   membres sans code membre ;
+   515→-   membres potentiellement éligibles aux droits statutaires si les règles sont connues.
+   516→
+   517→I. KPI qualité des données
+   518→
+   519→-   taux complétude global ;
+   520→-   taux complétude email ;
+   521→-   taux complétude pays ;
+   522→-   taux complétude code membre ;
+   523→-   taux complétude date inscription ;
+   524→-   taux complétude date paiement ;
+   525→-   taux complétude date comptabilité ;
+   526→-   nombre doublons email ;
+   527→-   nombre doublons code membre ;
+   528→-   nombre doublons facture ;
+   529→-   emails invalides ;
+   530→-   membres payés sans date paiement ;
+   531→-   membres payés sans date comptabilité ;
+   532→-   membres payés sans code membre ;
+   533→-   membres payés mais non actifs ;
+   534→-   membres actifs mais non payés ;
+   535→-   score qualité global de la base.
+   536→
+   537→J. KPI risques
+   538→
+   539→-   risque non-recouvrement ;
+   540→-   risque perte revenus ;
+   541→-   risque doublons ;
+   542→-   risque paiement non comptabilisé ;
+   543→-   risque gouvernance basée sur données incomplètes ;
+   544→-   risque concentration géographique ;
+   545→-   risque concentration revenus ;
+   546→-   risque faible renouvellement ;
+   547→-   risque mauvaise classification membres.
+   548→
+   549→PAGES DU DASHBOARD À DÉVELOPPER
+   550→
+   551→PAGE 1 — Vue exécutive
+   552→
+   553→Objectif : Donner au Directeur Exécutif une vue globale et immédiate.
+   554→
+   555→Contenu :
+   556→
+   557→-   total inscriptions ;
+   558→-   membres uniques ;
+   559→-   membres payés ;
+   560→-   membres non payés ;
+   561→-   taux paiement ;
+   562→-   montant payé ;
+   563→-   montant à recouvrer ;
+   564→-   taux recouvrement ;
+   565→-   membres actifs ;
+   566→-   pays représentés ;
+   567→-   alertes critiques ;
+   568→-   évolution mensuelle ;
+   569→-   top pays ;
+   570→-   top catégories.
+   571→
+   572→Visuels :
+   573→
+   574→-   cartes KPI ;
+   575→-   graphique évolution mensuelle ;
+   576→-   barres top pays ;
+   577→-   barres top catégories ;
+   578→-   tableau alertes critiques ;
+   579→-   indicateur rouge/orange/vert.
+   580→
+   581→PAGE 2 — Portefeuille membres
+   582→
+   583→Contenu :
+   584→
+   585→-   membres par catégorie ;
+   586→-   membres par statut paiement ;
+   587→-   membres par statut activation ;
+   588→-   membres par type adhésion ;
+   589→-   membres avec ou sans code membre ;
+   590→-   membres payés et actifs.
+   591→
+   592→Visuels :
+   593→
+   594→-   barres horizontales ;
+   595→-   barres empilées ;
+   596→-   tableau détaillé ;
+   597→-   filtres par pays, catégorie, statut.
+   598→
+   599→PAGE 3 — Géographie
+   600→
+   601→Contenu :
+   602→
+   603→-   membres Afrique ;
+   604→-   membres hors Afrique ;
+   605→-   membres par pays ;
+   606→-   revenus par pays ;
+   607→-   taux paiement par pays ;
+   608→-   top pays ;
+   609→-   pays à fort potentiel de recouvrement.
+   610→
+   611→Visuels :
+   612→
+   613→-   carte géographique ;
+   614→-   barres top 10 ;
+   615→-   matrice pays / paiement ;
+   616→-   tableau pays à relancer.
+   617→
+   618→PAGE 4 — Cotisations et recouvrement
+   619→
+   620→Contenu :
+   621→
+   622→-   montant attendu ;
+   623→-   montant payé ;
+   624→-   montant à recouvrer ;
+   625→-   taux recouvrement ;
+   626→-   recouvrement par catégorie ;
+   627→-   recouvrement par pays ;
+   628→-   créances par tranche d’âge ;
+   629→-   paiements non comptabilisés.
+   630→
+   631→Visuels :
+   632→
+   633→-   cartes KPI ;
+   634→-   waterfall attendu / payé / reste ;
+   635→-   Pareto créances ;
+   636→-   tableau membres à relancer ;
+   637→-   barres par tranche 30 / 60 / 90 jours.
+   638→
+   639→PAGE 5 — Renouvellements et fidélisation
+   640→
+   641→Contenu :
+   642→
+   643→-   nouvelles adhésions ;
+   644→-   renouvellements ;
+   645→-   taux renouvellement apparent ;
+   646→-   revenus renouvellements ;
+   647→-   revenus nouvelles adhésions ;
+   648→-   renouvellements par pays ;
+   649→-   renouvellements par catégorie.
+   650→
+   651→Visuels :
+   652→
+   653→-   courbes ;
+   654→-   barres groupées ;
+   655→-   tableau des renouvellements à vérifier.
+   656→
+   657→PAGE 6 — Qualité des données
+   658→
+   659→Contenu :
+   660→
+   661→-   score qualité global ;
+   662→-   doublons email ;
+   663→-   doublons code membre ;
+   664→-   doublons facture ;
+   665→-   emails invalides ;
+   666→-   champs manquants ;
+   667→-   payés sans date comptable ;
+   668→-   payés sans code membre ;
+   669→-   actifs non payés ;
+   670→-   payés non actifs.
+   671→
+   672→Visuels :
+   673→
+   674→-   cartes KPI ;
+   675→-   heatmap complétude ;
+   676→-   tableau anomalies ;
+   677→-   filtres par gravité.
+   678→
+   679→PAGE 7 — Risques et alertes
+   680→
+   681→Contenu :
+   682→
+   683→-   risques majeurs ;
+   684→-   criticité ;
+   685→-   membres à risque ;
+   686→-   pays à risque ;
+   687→-   catégories à risque ;
+   688→-   actions recommandées.
+   689→
+   690→Visuels :
+   691→
+   692→-   matrice de risque ;
+   693→-   tableau alertes ;
+   694→-   indicateurs rouge/orange/vert.
+   695→
+   696→PAGE 8 — Historique des uploads
+   697→
+   698→Contenu :
+   699→
+   700→-   liste des fichiers uploadés ;
+   701→-   date upload ;
+   702→-   utilisateur ;
+   703→-   nombre de lignes ;
+   704→-   nombre d’erreurs ;
+   705→-   statut import ;
+   706→-   fichier actif ;
+   707→-   possibilité de consulter le détail ;
+   708→-   possibilité d’activer un ancien fichier si nécessaire.
+   709→
+   710→Visuels :
+   711→
+   712→-   tableau historique ;
+   713→-   badges statut ;
+   714→-   bouton voir détail ;
+   715→-   bouton activer comme fichier courant ;
+   716→-   bouton archiver si autorisé.
+   717→
+   718→PAGE 9 — Administration
+   719→
+   720→Contenu :
+   721→
+   722→-   upload fichier Excel ;
+   723→-   état du dernier import ;
+   724→-   paramètres de seuil ;
+   725→-   gestion utilisateurs si prévue ;
+   726→-   logs d’activité.
+   727→
+   728→FILTRES GLOBAUX DU DASHBOARD
+   729→
+   730→Prévoir les filtres suivants :
+   731→
+   732→-   année ;
+   733→-   mois ;
+   734→-   pays ;
+   735→-   zone géographique ;
+   736→-   région africaine ;
+   737→-   catégorie d’adhésion ;
+   738→-   statut paiement ;
+   739→-   statut activation ;
+   740→-   type adhésion ;
+   741→-   mode paiement ;
+   742→-   tranche âge créance ;
+   743→-   qualité des données ;
+   744→-   fichier uploadé actif.
+   745→
+   746→API BACKEND À DÉVELOPPER
+   747→
+   748→Créer les endpoints suivants.
+   749→
+   750→Auth :
+   751→
+   752→-   POST /api/auth/login
+   753→-   POST /api/auth/logout
+   754→-   GET /api/auth/me
+   755→
+   756→Uploads :
+   757→
+   758→-   POST /api/uploads
+   759→-   GET /api/uploads
+   760→-   GET /api/uploads/:id
+   761→-   POST /api/uploads/:id/activate
+   762→-   POST /api/uploads/:id/archive
+   763→-   GET /api/uploads/:id/errors
+   764→
+   765→Dashboard :
+   766→
+   767→-   GET /api/dashboard/summary
+   768→-   GET /api/dashboard/members
+   769→-   GET /api/dashboard/categories
+   770→-   GET /api/dashboard/geography
+   771→-   GET /api/dashboard/finance
+   772→-   GET /api/dashboard/renewals
+   773→-   GET /api/dashboard/data-quality
+   774→-   GET /api/dashboard/risks
+   775→-   GET /api/dashboard/alerts
+   776→
+   777→Admin :
+   778→
+   779→-   GET /api/admin/users
+   780→-   POST /api/admin/users
+   781→-   PATCH /api/admin/users/:id
+   782→-   GET /api/admin/settings
+   783→-   PATCH /api/admin/settings
+   784→
+   785→Export :
+   786→
+   787→-   GET /api/export/members
+   788→-   GET /api/export/anomalies
+   789→-   GET /api/export/kpi-summary
+   790→
+   791→MESURES ET CALCULS À IMPLÉMENTER
+   792→
+   793→Créer un service backend ou une couche SQL qui calcule les KPI.
+   794→
+   795→Les calculs doivent respecter ces règles :
+   796→
+   797→-   membres payés = lignes où statut_paiement = Payé ;
+   798→-   membres non payés = lignes où statut_paiement ≠ Payé ;
+   799→-   membres actifs = lignes où statut_activation = Actif ;
+   800→-   membres uniques = distinct email_normalise ;
+   801→-   montant payé = somme montant des membres payés ;
+   802→-   montant à recouvrer = somme montant des membres non payés ;
+   803→-   taux paiement = membres payés / total inscriptions ;
+   804→-   taux recouvrement = montant payé / montant attendu ;
+   805→-   taux activation = membres actifs / total inscriptions ;
+   806→-   taux complétude email = lignes avec email / total lignes ;
+   807→-   taux complétude code membre = lignes avec code membre / total lignes ;
+   808→-   pays représentés = distinct pays_normalise ;
+   809→-   membres Afrique = zone_geographique = Afrique ;
+   810→-   membres hors Afrique = zone_geographique = Hors Afrique.
+   811→
+   812→RÈGLES DE MISE EN FORME CONDITIONNELLE
+   813→
+   814→Appliquer les seuils suivants par défaut.
+   815→
+   816→Taux paiement :
+   817→
+   818→-   vert si >= 80 %
+   819→-   orange si entre 60 % et 79 %
+   820→-   rouge si < 60 %
+   821→
+   822→Taux recouvrement :
+   823→
+   824→-   vert si >= 85 %
+   825→-   orange si entre 65 % et 84 %
+   826→-   rouge si < 65 %
+   827→
+   828→Taux activation :
+   829→
+   830→-   vert si >= 80 %
+   831→-   orange si entre 60 % et 79 %
+   832→-   rouge si < 60 %
+   833→
+   834→Doublons email :
+   835→
+   836→-   vert si 0
+   837→-   orange si entre 1 et 10
+   838→-   rouge si > 10
+   839→
+   840→Paiements non comptabilisés :
+   841→
+   842→-   vert si 0
+   843→-   orange si entre 1 et 10
+   844→-   rouge si > 10
+   845→
+   846→Créances anciennes de plus de 90 jours :
+   847→
+   848→-   vert si < 5 %
+   849→-   orange si entre 5 % et 15 %
+   850→-   rouge si > 15 %
+   851→
+   852→ALERTES AUTOMATIQUES À PRÉVOIR
+   853→
+   854→Créer une liste d’alertes générées automatiquement :
+   855→
+   856→1.  Membre payé mais non actif.
+   857→2.  Membre actif mais non payé.
+   858→3.  Membre payé sans date de paiement.
+   859→4.  Membre payé sans date comptabilité.
+   860→5.  Membre payé sans code membre.
+   861→6.  Email invalide.
+   862→7.  Doublon email.
+   863→8.  Doublon code membre.
+   864→9.  Doublon facture.
+   865→10. Paiement comptabilisé avant paiement.
+   866→11. Paiement antérieur à inscription.
+   867→12. Pays non reconnu.
+   868→13. Catégorie non reconnue.
+   869→14. Créance de plus de 90 jours.
+   870→15. Montant nul ou invalide.
+   871→16. Membre sans pays.
+   872→17. Membre sans email.
+   873→18. Fichier importé avec colonnes manquantes.
+   874→
+   875→INTERFACE UTILISATEUR ATTENDUE
+   876→
+   877→L’application doit avoir un design professionnel, moderne, sobre et institutionnel.
+   878→
+   879→Style visuel recommandé :
+   880→
+   881→-   interface claire ;
+   882→-   navigation latérale ;
+   883→-   en-tête avec nom de l’application ;
+   884→-   couleurs inspirées AAEA : bleu, cyan, vert, violet institutionnel ;
+   885→-   cartes KPI lisibles ;
+   886→-   tableaux propres ;
+   887→-   badges de statut ;
+   888→-   filtres bien visibles ;
+   889→-   graphiques sobres ;
+   890→-   alertes rouge/orange/vert ;
+   891→-   responsive desktop en priorité ;
+   892→-   compatible tablette si possible.
+   893→
+   894→Nom possible de l’application :
+   895→
+   896→AAEA Membership Dashboard
+   897→
+   898→ou
+   899→
+   900→AfWASA Membership Intelligence
+   901→
+   902→ou
+   903→
+   904→Plateforme de Pilotage des Membres AAEA
+   905→
+   906→SÉCURITÉ
+   907→
+   908→Respecter les règles suivantes :
+   909→
+   910→-   mots de passe hashés ;
+   911→-   jamais de mot de passe en clair ;
+   912→-   protection des routes admin ;
+   913→-   vérification du rôle utilisateur ;
+   914→-   limitation des types de fichiers uploadés ;
+   915→-   accepter uniquement .xlsx ou .xls selon choix ;
+   916→-   limiter la taille maximale du fichier ;
+   917→-   empêcher l’exécution de contenu malveillant ;
+   918→-   journaliser les imports ;
+   919→-   journaliser les connexions ;
+   920→-   afficher des messages d’erreur clairs sans exposer les détails sensibles ;
+   921→-   prévoir une variable d’environnement pour les secrets.
+   922→
+   923→VALIDATION DU FICHIER EXCEL
+   924→
+   925→Avant d’importer, vérifier :
+   926→
+   927→1.  Que le fichier est bien un fichier Excel.
+   928→2.  Que la feuille INSCRIPTIONS ET ADHESIONS existe.
+   929→3.  Que les colonnes obligatoires sont présentes.
+   930→4.  Que les colonnes critiques ne sont pas complètement vides.
+   931→5.  Que le nombre de lignes est supérieur à 0.
+   932→6.  Que les dates sont lisibles.
+   933→7.  Que les montants sont convertibles.
+   934→8.  Que les statuts sont interprétables.
+   935→
+   936→Si le fichier est invalide :
+   937→
+   938→-   bloquer l’import ;
+   939→-   afficher les erreurs ;
+   940→-   enregistrer l’échec dans uploaded_files ;
+   941→-   ne pas remplacer le dataset actif.
+   942→
+   943→Si le fichier est valide :
+   944→
+   945→-   enregistrer le fichier ;
+   946→-   créer une entrée dans uploaded_files ;
+   947→-   importer les lignes brutes ;
+   948→-   créer les lignes nettoyées ;
+   949→-   calculer les anomalies ;
+   950→-   recalculer les KPI ;
+   951→-   permettre d’activer ce fichier comme dataset courant.
+   952→
+   953→HISTORIQUE DES FICHIERS UPLOADÉS
+   954→
+   955→Créer une page dédiée contenant :
+   956→
+   957→-   nom du fichier ;
+   958→-   date upload ;
+   959→-   utilisateur ;
+   960→-   taille du fichier ;
+   961→-   nombre de lignes ;
+   962→-   nombre de colonnes ;
+   963→-   nombre d’erreurs ;
+   964→-   statut : succès, échec, archivé, actif ;
+   965→-   bouton voir détails ;
+   966→-   bouton voir erreurs ;
+   967→-   bouton activer ;
+   968→-   bouton archiver ;
+   969→-   badge fichier actif.
+   970→
+   971→Un seul fichier doit être actif à la fois pour alimenter le dashboard principal.
+   972→
+   973→Prévoir la possibilité de comparer plus tard deux imports successifs.
+   974→
+   975→FONCTIONNALITÉS OPTIONNELLES À PRÉVOIR EN V2
+   976→
+   977→Prévoir une architecture permettant d’ajouter plus tard :
+   978→
+   979→-   comparaison entre deux fichiers uploadés ;
+   980→-   évolution des KPI entre deux imports ;
+   981→-   notification email après import ;
+   982→-   export PDF du rapport Direction Exécutive ;
+   983→-   export Excel des membres non payés ;
+   984→-   export Excel des anomalies ;
+   985→-   gestion avancée des rôles ;
+   986→-   journal de relance des membres ;
+   987→-   statut de relance ;
+   988→-   commentaires sur les membres ;
+   989→-   affectation d’un responsable de relance ;
+   990→-   scoring de priorité de recouvrement ;
+   991→-   module prospects ;
+   992→-   module prévision de revenus ;
+   993→-   intégration Power BI ou API externe ;
+   994→-   sauvegarde automatique.
+   995→
+   996→TODOLIST DE DÉVELOPPEMENT À RESPECTER
+   997→
+   998→PHASE 0 — Cadrage technique
+   999→
+  1000→-   Lire entièrement cette spécification.
+  1001→
+  1002→-   Identifier la stack retenue.
+  1003→
+  1004→-   Initialiser le projet.
+  1005→
+  1006→-   Créer la structure des dossiers.
+  1007→
+  1008→-   Configurer TypeScript.
+  1009→
+  1010→-   Configurer les variables d’environnement.
+  1011→
+  1012→-   Configurer la base de données.
+  1013→
+  1014→-   Configurer l’ORM.
+  1015→
+  1016→-   Créer un README initial.
+  1017→
+  1018→PHASE 1 — Base de données
+  1019→
+  1020→-   Créer le modèle users.
+  1021→
+  1022→-   Créer le modèle uploaded_files.
+  1023→
+  1024→-   Créer le modèle adhesion_records_raw.
+  1025→
+  1026→-   Créer le modèle adhesion_records_clean.
+  1027→
+  1028→-   Créer le modèle import_errors.
+  1029→
+  1030→-   Créer le modèle audit_logs.
+  1031→
+  1032→-   Créer le modèle dashboard_settings.
+  1033→
+  1034→-   Générer les migrations.
+  1035→
+  1036→-   Créer un utilisateur admin par défaut.
+  1037→
+  1038→-   Tester la connexion à la base.
+  1039→
+  1040→PHASE 2 — Authentification
+  1041→
+  1042→-   Créer la page login.
+  1043→
+  1044→-   Créer la logique de connexion.
+  1045→
+  1046→-   Hasher les mots de passe.
+  1047→
+  1048→-   Gérer les sessions.
+  1049→
+  1050→-   Protéger les routes admin.
+  1051→
+  1052→-   Protéger les routes dashboard.
+  1053→
+  1054→-   Gérer la déconnexion.
+  1055→
+  1056→-   Afficher l’utilisateur connecté.
+  1057→
+  1058→-   Ajouter la gestion des rôles admin / lecteur.
+  1059→
+  1060→PHASE 3 — Upload Excel
+  1061→
+  1062→-   Créer l’interface d’upload.
+  1063→
+  1064→-   Restreindre les formats acceptés.
+  1065→
+  1066→-   Limiter la taille du fichier.
+  1067→
+  1068→-   Enregistrer le fichier uploadé.
+  1069→
+  1070→-   Créer l’entrée uploaded_files.
+  1071→
+  1072→-   Lire le fichier avec une librairie Excel.
+  1073→
+  1074→-   Vérifier l’existence de la feuille INSCRIPTIONS ET ADHESIONS.
+  1075→
+  1076→-   Vérifier les colonnes obligatoires.
+  1077→
+  1078→-   Gérer les erreurs d’import.
+  1079→
+  1080→-   Afficher un résumé de l’import.
+  1081→
+  1082→PHASE 4 — Import brut
+  1083→
+  1084→-   Lire toutes les lignes du fichier.
+  1085→
+  1086→-   Créer les lignes adhesion_records_raw.
+  1087→
+  1088→-   Conserver le numéro de ligne Excel.
+  1089→
+  1090→-   Conserver les valeurs originales.
+  1091→
+  1092→-   Stocker aussi la ligne complète en JSON brut.
+  1093→
+  1094→-   Compter les lignes importées.
+  1095→
+  1096→-   Signaler les lignes vides.
+  1097→
+  1098→PHASE 5 — Nettoyage et normalisation
+  1099→
+  1100→-   Normaliser les emails.
+  1101→
+  1102→-   Valider les emails.
+  1103→
+  1104→-   Normaliser les pays.
+  1105→
+  1106→-   Créer zone Afrique / hors Afrique.
+  1107→
+  1108→-   Créer région africaine.
+  1109→
+  1110→-   Normaliser les catégories d’adhésion.
+  1111→
+  1112→-   Normaliser les modes de paiement.
+  1113→
+  1114→-   Normaliser les types d’adhésion.
+  1115→
+  1116→-   Normaliser les statuts paiement.
+  1117→
+  1118→-   Normaliser les statuts activation.
+  1119→
+  1120→-   Convertir les montants.
+  1121→
+  1122→-   Convertir les dates.
+  1123→
+  1124→-   Calculer les délais.
+  1125→
+  1126→-   Calculer les montants payés.
+  1127→
+  1128→-   Calculer les montants à recouvrer.
+  1129→
+  1130→-   Créer les lignes adhesion_records_clean.
+  1131→
+  1132→PHASE 6 — Détection des anomalies
+  1133→
+  1134→-   Détecter les doublons email.
+  1135→
+  1136→-   Détecter les doublons code membre.
+  1137→
+  1138→-   Détecter les doublons facture.
+  1139→
+  1140→-   Détecter les emails invalides.
+  1141→
+  1142→-   Détecter les pays manquants.
+  1143→
+  1144→-   Détecter les catégories non reconnues.
+  1145→
+  1146→-   Détecter les membres payés sans date paiement.
+  1147→
+  1148→-   Détecter les membres payés sans date comptabilité.
+  1149→
+  1150→-   Détecter les membres payés sans code membre.
+  1151→
+  1152→-   Détecter les membres payés mais non actifs.
+  1153→
+  1154→-   Détecter les membres actifs mais non payés.
+  1155→
+  1156→-   Détecter les dates incohérentes.
+  1157→
+  1158→-   Enregistrer les erreurs dans import_errors.
+  1159→
+  1160→-   Calculer un score qualité ligne.
+  1161→
+  1162→-   Calculer un score qualité global.
+  1163→
+  1164→PHASE 7 — Calcul des KPI
+  1165→
+  1166→-   Créer les fonctions de calcul KPI globaux.
+  1167→
+  1168→-   Créer les KPI portefeuille.
+  1169→
+  1170→-   Créer les KPI paiement.
+  1171→
+  1172→-   Créer les KPI financiers.
+  1173→
+  1174→-   Créer les KPI catégories.
+  1175→
+  1176→-   Créer les KPI pays.
+  1177→
+  1178→-   Créer les KPI Afrique / hors Afrique.
+  1179→
+  1180→-   Créer les KPI renouvellements.
+  1181→
+  1182→-   Créer les KPI qualité.
+  1183→
+  1184→-   Créer les KPI risques.
+  1185→
+  1186→-   Créer les endpoints API dashboard.
+  1187→
+  1188→-   Tester chaque KPI avec des données connues.
+  1189→
+  1190→PHASE 8 — Interface dashboard
+  1191→
+  1192→-   Créer le layout principal.
+  1193→
+  1194→-   Créer la navigation latérale.
+  1195→
+  1196→-   Créer le header.
+  1197→
+  1198→-   Créer les composants cartes KPI.
+  1199→
+  1200→-   Créer les composants graphiques.
+  1201→
+  1202→-   Créer les composants tableaux.
+  1203→
+  1204→-   Créer les composants badges.
+  1205→
+  1206→-   Créer les filtres globaux.
+  1207→
+  1208→-   Créer la page Vue exécutive.
+  1209→
+  1210→-   Créer la page Portefeuille membres.
+  1211→
+  1212→-   Créer la page Géographie.
+  1213→
+  1214→-   Créer la page Cotisations et recouvrement.
+  1215→
+  1216→-   Créer la page Renouvellements.
+  1217→
+  1218→-   Créer la page Qualité des données.
+  1219→
+  1220→-   Créer la page Risques et alertes.
+  1221→
+  1222→-   Créer la page Historique des uploads.
+  1223→
+  1224→-   Créer la page Administration.
+  1225→
+  1226→PHASE 9 — Historique uploads
+  1227→
+  1228→-   Afficher la liste des fichiers uploadés.
+  1229→
+  1230→-   Afficher le statut de chaque import.
+  1231→
+  1232→-   Afficher la date d’upload.
+  1233→
+  1234→-   Afficher l’utilisateur ayant uploadé.
+  1235→
+  1236→-   Afficher le nombre de lignes.
+  1237→
+  1238→-   Afficher le nombre d’erreurs.
+  1239→
+  1240→-   Afficher le fichier actif.
+  1241→
+  1242→-   Créer le bouton voir détails.
+  1243→
+  1244→-   Créer le bouton voir erreurs.
+  1245→
+  1246→-   Créer le bouton activer fichier.
+  1247→
+  1248→-   Créer le bouton archiver fichier.
+  1249→
+  1250→-   Empêcher plusieurs fichiers actifs simultanément.
+  1251→
+  1252→PHASE 10 — Alertes et règles visuelles
+  1253→
+  1254→-   Implémenter les seuils rouge/orange/vert.
+  1255→
+  1256→-   Afficher les alertes critiques.
+  1257→
+  1258→-   Afficher les badges de gravité.
+  1259→
+  1260→-   Créer les tableaux d’anomalies.
+  1261→
+  1262→-   Ajouter les couleurs conditionnelles.
+  1263→
+  1264→-   Ajouter les messages de risque.
+  1265→
+  1266→-   Ajouter les recommandations automatiques simples.
+  1267→
+  1268→PHASE 11 — Tests
+  1269→
+  1270→-   Tester login valide.
+  1271→
+  1272→-   Tester login invalide.
+  1273→
+  1274→-   Tester upload fichier valide.
+  1275→
+  1276→-   Tester upload fichier invalide.
+  1277→
+  1278→-   Tester fichier sans feuille attendue.
+  1279→
+  1280→-   Tester fichier avec colonnes manquantes.
+  1281→
+  1282→-   Tester doublons email.
+  1283→
+  1284→-   Tester membres payés sans date comptabilité.
+  1285→
+  1286→-   Tester calcul taux paiement.
+  1287→
+  1288→-   Tester calcul montant payé.
+  1289→
+  1290→-   Tester calcul montant à recouvrer.
+  1291→
+  1292→-   Tester dashboard avec filtres.
+  1293→
+  1294→-   Tester historique uploads.
+  1295→
+  1296→-   Tester activation ancien fichier.
+  1297→
+  1298→-   Tester droits admin / lecteur.
+  1299→
+  1300→-   Tester responsive.
+  1301→
+  1302→PHASE 12 — Finalisation
+  1303→
+  1304→-   Nettoyer le code.
+  1305→
+  1306→-   Ajouter commentaires utiles.
+  1307→
+  1308→-   Ajouter README complet.
+  1309→
+  1310→-   Documenter l’installation.
+  1311→
+  1312→-   Documenter les variables d’environnement.
+  1313→
+  1314→-   Documenter le format du fichier Excel attendu.
+  1315→
+  1316→-   Documenter les règles de calcul des KPI.
+  1317→
+  1318→-   Documenter les limites connues.
+  1319→
+  1320→-   Préparer la version déployable.
+  1321→
+  1322→-   Vérifier la sécurité.
+  1323→
+  1324→-   Vérifier les performances.
+  1325→
+  1326→-   Livrer l’application fonctionnelle.
+  1327→
+  1328→CRITÈRES D’ACCEPTATION
+  1329→
+  1330→L’application sera considérée comme réussie si :
+  1331→
+  1332→1.  Un administrateur peut se connecter.
+  1333→2.  Un administrateur peut uploader le fichier Excel template.
+  1334→3.  L’application valide la structure du fichier.
+  1335→4.  Les données sont importées.
+  1336→5.  Les données sont nettoyées.
+  1337→6.  Les KPI sont calculés automatiquement.
+  1338→7.  Le dashboard affiche les indicateurs principaux.
+  1339→8.  L’historique des fichiers uploadés est visible.
+  1340→9.  Un seul fichier actif alimente le dashboard.
+  1341→10. Les anomalies sont détectées et affichées.
+  1342→11. Les pages principales du dashboard fonctionnent.
+  1343→12. Les filtres fonctionnent.
+  1344→13. Les rôles admin et lecteur sont respectés.
+  1345→14. Les erreurs sont bien gérées.
+  1346→15. L’interface est professionnelle, claire et exploitable.
+  1347→
+  1348→LIVRABLES ATTENDUS
+  1349→
+  1350→À la fin du développement, fournir :
+  1351→
+  1352→1.  Le code source complet.
+  1353→2.  Le schéma de base de données.
+  1354→3.  Les scripts de migration.
+  1355→4.  Le système d’authentification.
+  1356→5.  Le module upload Excel.
+  1357→6.  Le module import et nettoyage.
+  1358→7.  Le module calcul KPI.
+  1359→8.  Le dashboard complet.
+  1360→9.  La page historique des uploads.
+  1361→10. La page qualité des données.
+  1362→11. La page risques et alertes.
+  1363→12. Le README d’installation.
+  1364→13. Les identifiants admin de test.
+  1365→14. Les consignes de déploiement.
+  1366→15. Les limites et améliorations possibles.
+  1367→
+  1368→MÉTHODE DE TRAVAIL IMPOSÉE À L’AGENT IA
+  1369→
+  1370→Ne code pas toute l’application d’un seul bloc sans organisation.
+  1371→
+  1372→Procède étape par étape :
+  1373→
+  1374→1.  Commencer par proposer l’architecture technique.
+  1375→2.  Créer la structure projet.
+  1376→3.  Créer la base de données.
+  1377→4.  Créer l’authentification.
+  1378→5.  Créer l’upload Excel.
+  1379→6.  Créer l’import brut.
+  1380→7.  Créer le nettoyage.
+  1381→8.  Créer les KPI.
+  1382→9.  Créer le dashboard.
+  1383→10. Créer l’historique.
+  1384→11. Créer les alertes.
+  1385→12. Tester.
+  1386→13. Corriger.
+  1387→14. Documenter.
+  1388→15. Préparer le déploiement.
+  1389→
+  1390→À chaque phase :
+  1391→
+  1392→-   afficher les fichiers créés ;
+  1393→-   expliquer brièvement le rôle de chaque fichier ;
+  1394→-   vérifier que le code compile ;
+  1395→-   vérifier que les fonctionnalités fonctionnent ;
+  1396→-   ne pas passer à la phase suivante si la phase actuelle est cassée ;
+  1397→-   proposer les commandes à exécuter ;
+  1398→-   signaler les erreurs possibles et leur correction.
+  1399→
+  1400→OBJECTIF FINAL
+  1401→
+  1402→Créer une application web professionnelle permettant à l’AAEA de passer d’un simple fichier Excel à une plateforme complète de pilotage membership.
+  1403→
+  1404→L’application doit permettre au Directeur Exécutif et aux équipes de suivre :
+  1405→
+  1406→-   le portefeuille membres ;
+  1407→-   les paiements ;
+  1408→-   les cotisations ;
+  1409→-   le recouvrement ;
+  1410→-   les renouvellements ;
+  1411→-   les pays représentés ;
+  1412→-   les catégories d’adhésion ;
+  1413→-   les membres actifs ;
+  1414→-   les membres non payés ;
+  1415→-   les anomalies ;
+  1416→-   la qualité des données ;
+  1417→-   les risques ;
+  1418→-   l’historique des fichiers uploadés ;
+  1419→-   les actions prioritaires.
+  1420→
+  1421→Le résultat attendu est une application claire, moderne, sécurisée, évolutive et directement exploitable pour la gouvernance et la gestion complète des membres de l’Association Africaine de l’Eau et de l’Assainissement.
