@@ -187,3 +187,28 @@ Verification results (via agent-browser):
 - Footer: sticky, AAEA / AfWASA © 2026
 
 GitHub: pushed commit 3b81b6f to main branch
+
+---
+Task ID: 7
+Agent: Main Coordinator
+Task: Apply configuration corrections and produce audit report
+
+Work Log:
+- Fixed .env: replaced SQLite URL with Neon PostgreSQL URL
+- Fixed src/lib/db.ts: added dotenv override in development only (require('dotenv').config({ override: true })) to prevent system DATABASE_URL from overriding .env
+- Restored prisma/schema.prisma from git after accidental reformatting by `prisma db pull`
+- Fixed .gitignore: added comprehensive rules (.env, .env*.local, .next/, db/, .zscripts/, .vercel/, etc.)
+- Removed .env from git tracking (git rm --cached .env) - was previously tracked with DB credentials!
+- Removed .zscripts/ from git tracking (git rm -r --cached .zscripts/)
+- Verified Prisma generate works correctly
+- Verified Neon DB connection works (prisma studio connected)
+- Started dev server via .zscripts/dev.sh - health check passed
+- Verified via Agent Browser: login page loads, admin login works, dashboard shows real KPIs from Neon
+- All 9 views accessible, no browser console errors, all API routes return 200
+- Lint passes with zero errors
+
+Stage Summary:
+- 3 files modified: .env (restored locally only), .gitignore (comprehensive), src/lib/db.ts (dotenv override in dev)
+- 9 files removed from git tracking: .env + 8 .zscripts/ files
+- 8 unpushed commits on main (3 meaningful + 5 auto-generated)
+- Ready to commit and push (AWAITING USER AUTHORIZATION)
