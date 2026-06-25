@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 import {
   Menu,
   LayoutDashboard,
@@ -20,7 +21,6 @@ import {
   Upload,
   Settings,
   LogOut,
-  Droplets,
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -61,9 +61,7 @@ export function MobileSidebar() {
         {/* Logo */}
         <SheetHeader className="px-4 pt-5 pb-3">
           <SheetTitle className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-[#362981]">
-              <Droplets className="w-5 h-5 text-white" />
-            </div>
+            <Image src="/logo.jpg" alt="AAEA" width={36} height={36} className="rounded object-contain" />
             <div className="flex flex-col items-start">
               <span className="text-sm font-bold text-[#362981] leading-tight">AAEA</span>
               <span className="text-[10px] text-muted-foreground leading-tight">AfWASA Dashboard</span>

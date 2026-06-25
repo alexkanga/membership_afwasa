@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   keywords: ["AAEA", "AfWASA", "adhésion", "cotisations", "water", "sanitation", "Africa"],
   authors: [{ name: "AAEA" }],
   icons: {
-    icon: "/logo.svg",
+    icon: "/logo.jpg",
   },
 };
 

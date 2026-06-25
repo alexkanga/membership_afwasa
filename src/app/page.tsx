@@ -16,7 +16,8 @@ import { UploadsView } from '@/components/dashboard/uploads-view';
 import { AdminPanel } from '@/components/dashboard/admin-panel';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useMounted } from '@/hooks/use-mounted';
-import { Droplets, Loader2 } from 'lucide-react';
+import Image from 'next/image';
+import { Loader2 } from 'lucide-react';
 
 export default function Home() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -36,9 +37,7 @@ export default function Home() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-4">
-          <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-[#362981]">
-            <Droplets className="w-8 h-8 text-white" />
-          </div>
+          <Image src="/logo.jpg" alt="AAEA" width={64} height={64} className="rounded-2xl" />
           <div className="flex flex-col items-center gap-2">
             <h1 className="text-lg font-bold text-[#362981]">AAEA</h1>
             <span className="text-sm text-muted-foreground">AfWASA Dashboard</span>

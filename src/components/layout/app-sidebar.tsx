@@ -7,6 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 import {
   LayoutDashboard,
   Users,
@@ -18,7 +19,6 @@ import {
   Upload,
   Settings,
   LogOut,
-  Droplets,
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -49,10 +49,8 @@ export function AppSidebar() {
   return (
     <div className="flex h-full flex-col bg-white border-r border-border">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-border">
-        <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-[#362981]">
-          <Droplets className="w-5 h-5 text-white" />
-        </div>
+      <div className="flex items-center gap-3 px-4 py-4 border-b border-border">
+        <Image src="/logo.jpg" alt="AAEA" width={36} height={36} className="rounded object-contain" />
         <div className="flex flex-col">
           <span className="text-sm font-bold text-[#362981] leading-tight">AAEA</span>
           <span className="text-[10px] text-muted-foreground leading-tight">AfWASA Dashboard</span>
