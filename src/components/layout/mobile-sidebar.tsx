@@ -14,12 +14,9 @@ import {
   LayoutDashboard,
   Users,
   Globe,
-  DollarSign,
-  RefreshCw,
+  FileText,
   ShieldCheck,
-  AlertTriangle,
   Upload,
-  Settings,
   LogOut,
 } from 'lucide-react';
 
@@ -27,12 +24,9 @@ const ICON_MAP: Record<string, React.ElementType> = {
   LayoutDashboard,
   Users,
   Globe,
-  DollarSign,
-  RefreshCw,
+  FileText,
   ShieldCheck,
-  AlertTriangle,
   Upload,
-  Settings,
 };
 
 export function MobileSidebar() {
@@ -43,7 +37,7 @@ export function MobileSidebar() {
   const [open, setOpen] = React.useState(false);
 
   const visiblePages = DASHBOARD_PAGES.filter((page) => {
-    if (page.id === 'uploads' || page.id === 'admin') {
+    if ('adminOnly' in page && page.adminOnly) {
       return isAdmin;
     }
     return true;

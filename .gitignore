@@ -46,4 +46,5 @@ skills/
 .vscode/
 .idea/
 *.swp
-*.swo
+*.swoupload/
+upload/

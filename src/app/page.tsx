@@ -8,12 +8,9 @@ import { AppHeader } from '@/components/layout/app-header';
 import { ExecutiveView } from '@/components/dashboard/executive-view';
 import { MembersView } from '@/components/dashboard/members-view';
 import { GeographyView } from '@/components/dashboard/geography-view';
-import { FinanceView } from '@/components/dashboard/finance-view';
-import { RenewalsView } from '@/components/dashboard/renewals-view';
-import { QualityView } from '@/components/dashboard/quality-view';
-import { RisksView } from '@/components/dashboard/risks-view';
-import { UploadsView } from '@/components/dashboard/uploads-view';
-import { AdminPanel } from '@/components/dashboard/admin-panel';
+import { PlansView } from '@/components/dashboard/plans-view';
+import { RecoveryView } from '@/components/dashboard/recovery-view';
+import { UploadView } from '@/components/dashboard/upload-view';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useMounted } from '@/hooks/use-mounted';
 import Image from 'next/image';
@@ -65,18 +62,12 @@ export default function Home() {
         return <MembersView />;
       case 'geography':
         return <GeographyView />;
-      case 'finance':
-        return <FinanceView />;
-      case 'renewals':
-        return <RenewalsView />;
-      case 'quality':
-        return <QualityView />;
-      case 'risks':
-        return <RisksView />;
-      case 'uploads':
-        return isAdmin ? <UploadsView /> : <ExecutiveView />;
-      case 'admin':
-        return isAdmin ? <AdminPanel /> : <ExecutiveView />;
+      case 'plans':
+        return <PlansView />;
+      case 'recovery':
+        return <RecoveryView />;
+      case 'upload':
+        return isAdmin ? <UploadView /> : <ExecutiveView />;
       default:
         return <ExecutiveView />;
     }

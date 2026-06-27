@@ -212,3 +212,112 @@ Stage Summary:
 - 9 files removed from git tracking: .env + 8 .zscripts/ files
 - 8 unpushed commits on main (3 meaningful + 5 auto-generated)
 - Ready to commit and push (AWAITING USER AUTHORIZATION)
+
+---
+Task ID: 8
+Agent: Main Coordinator
+Task: Complete Dashboard Redesign — 5 views + Upload page
+
+Work Log:
+- Read worklog.md and commentaires_dashboard.txt for detailed specifications
+- Updated DASHBOARD_PAGES in constants.ts from 9 items to 6 (5 views + 1 upload)
+  - Vue exécutive, Groupes de membres, Géographie, Plans d'adhésion, Recouvrement & Qualité, Upload Fichier (adminOnly)
+  - Added FileText icon to sidebar icon map
+- Added CHART_COLORS constant for consistent chart coloring
+- Added FCFA conversion helpers to format.ts: EUR_TO_FCF_A, toFcfa(), formatFcfa()
+- Updated auth-store.ts DashboardFilters to match new filter bar (periode, typeDate, continent, regionAfrique, planAdhesion)
+- Created reusable filter-bar.tsx component with 5 Select dropdowns
+- Completely rewrote /api/dashboard/summary/route.ts to return all data for 5 views in one call:
+  - effectifs (8 member count metrics by group and payment status)
+  - montants (8 amount metrics in EUR for frontend FCFA conversion)
+  - geographie (Africa vs Hors Afrique counts, amounts, unique country counts)
+  - groupes (sub-category breakdowns for actifs, affilies, individuels)
+  - plans (plan details with group, payment status, amounts)
+  - pays (country-level breakdown with top 10 support)
+  - regions (African region breakdown)
+  - evolutionMensuelle (monthly amounts paid vs unpaid)
+  - creancesParTranche (receivables by age brackets: 0-30j, 31-60j, 61-90j, >90j)
+  - qualite (data completeness: email, pays, code membre, dates)
+  - anomalies (critical and warning anomalies with severity)
+  - sousCategories (top 10 across all groups)
+  - recouvrement (total due, paid, to recover, recovery rate)
+  - qualityAlerts (payes sans date compta, sans code membre, creances > 90j, doubles emails)
+- Rewrote executive-view.tsx:
+  - 8 KPI cards — Effectifs (inscrits, actifs, affiliés, individuels × payés/non payés)
+  - 8 KPI cards — Montants FCFA (same breakdown, amounts converted to FCFA)
+  - 3 Donut charts (Afrique vs Hors Afrique: payés, non payés, tous)
+  - Line chart — Évolution mensuelle des montants (FCFA)
+  - Alertes clés section + Autres alertes section
+- Rewrote members-view.tsx:
+  - 3 Group cards (actifs, affiliés, individuels) with payés/non payés/montant
+  - 3 Sous-catégorie tables with Total/Payés/Non payés columns
+  - 3 Donut charts (Répartition par continent: payés, non payés, tous)
+  - Top 10 sous-catégories table with Rang/Total/Payés/Non payés/% payés
+- Rewrote geography-view.tsx:
+  - 6 KPI cards Row 1 (Afrique/Hors Afrique payés/non payés, pays représentés)
+  - 4 KPI cards Row 2 (montants payés/recouvrer Afrique/Hors Afrique)
+  - 3 Donut charts (Afrique vs Hors Afrique)
+  - 3 Horizontal bar charts (Membres par région africaine: payés, non payés, tous)
+  - Top 10 pays table
+- Created plans-view.tsx (new):
+  - 6 KPI cards (members by group, payés/non payés)
+  - 4 KPI cards (montant payé total/actifs/affiliés/individuels in FCFA)
+  - 3 Horizontal bar charts (répartition by sous-catégorie per group)
+  - Stacked bar chart (payés/non payés par plan)
+  - Détail des plans table (Plan, Groupe, Payés, Non payés, Montant payé FCFA)
+  - Sous-catégories dominantes section
+- Created recovery-view.tsx (new):
+  - 8 KPI cards (montants, taux recouvrement, quality alerts)
+  - Bar chart — Recouvrement attendu vs payé vs à recouvrer (FCFA)
+  - Bar chart — Créances par tranches d'âge (color coded: green/orange/red)
+  - Horizontal bar chart — Qualité des données (complétude color coded)
+  - Anomalies critiques table (Anomalie, Description, Nombre, Impact, Sévérité)
+  - Actions prioritaires table
+- Created upload-view.tsx (new):
+  - Drag-and-drop Excel upload zone
+  - Upload result feedback (success/error)
+  - Upload history table with status badges
+- Updated page.tsx: new imports, 6-way switch (executive, members, geography, plans, recovery, upload)
+- Updated app-sidebar.tsx: new icon map (LayoutDashboard, Users, Globe, FileText, ShieldCheck, Upload), adminOnly check
+- Updated mobile-sidebar.tsx: same icon map, adminOnly check
+- Deleted 6 old view files: finance-view, renewals-view, quality-view, risks-view, uploads-view, admin-panel
+- All text in French
+- All amounts displayed in FCFA (converted from EUR at 655.96 rate)
+- Color scheme: green=#009446, blue=#029CB1, violet=#362981, orange/amber for unpaid, red for critical
+- ESLint: 0 errors, 0 warnings
+
+Files Modified (7):
+  - src/lib/constants.ts (DASHBOARD_PAGES updated, CHART_COLORS added)
+  - src/lib/format.ts (FCFA helpers added)
+  - src/stores/auth-store.ts (DashboardFilters updated)
+  - src/app/page.tsx (new view imports and routing)
+  - src/components/layout/app-sidebar.tsx (new icons, adminOnly)
+  - src/components/layout/mobile-sidebar.tsx (new icons, adminOnly)
+  - src/app/api/dashboard/summary/route.ts (complete rewrite)
+
+Files Created (6):
+  - src/components/dashboard/filter-bar.tsx
+  - src/components/dashboard/plans-view.tsx
+  - src/components/dashboard/recovery-view.tsx
+  - src/components/dashboard/upload-view.tsx
+
+Files Rewritten (4):
+  - src/components/dashboard/executive-view.tsx
+  - src/components/dashboard/members-view.tsx
+  - src/components/dashboard/geography-view.tsx
+
+Files Deleted (6):
+  - src/components/dashboard/finance-view.tsx
+  - src/components/dashboard/renewals-view.tsx
+  - src/components/dashboard/quality-view.tsx
+  - src/components/dashboard/risks-view.tsx
+  - src/components/dashboard/uploads-view.tsx
+  - src/components/dashboard/admin-panel.tsx
+
+Stage Summary:
+- Complete dashboard redesign from 9 views to 5 views + 1 upload page
+- All data served from single /api/dashboard/summary endpoint
+- All amounts converted to FCFA (1€ = 655.96 FCFA)
+- Consistent filter bar across all views
+- AAEA brand colors and French text throughout
+- ESLint: 0 errors

@@ -23,6 +23,18 @@ export const COLORS = {
   },
 } as const;
 
+// Chart colors
+export const CHART_COLORS = {
+  green: '#009446',
+  blue: '#029CB1',
+  violet: '#362981',
+  orange: '#F59E0B',
+  red: '#EF4444',
+  teal: '#14B8A6',
+  amber: '#D97706',
+  purple: '#8B5CF6',
+} as const;
+
 // Status color mapping
 export const STATUS_COLORS = {
   green: 'bg-emerald-500 text-white',
@@ -134,13 +146,10 @@ export const EXPECTED_SHEET = 'INSCRIPTIONS ET ADHESIONS';
 
 // Dashboard pages
 export const DASHBOARD_PAGES = [
-  { id: 'executive', label: 'Vue Exécutive', icon: 'LayoutDashboard' },
-  { id: 'members', label: 'Portefeuille Membres', icon: 'Users' },
+  { id: 'executive', label: 'Vue exécutive', icon: 'LayoutDashboard' },
+  { id: 'members', label: 'Groupes de membres', icon: 'Users' },
   { id: 'geography', label: 'Géographie', icon: 'Globe' },
-  { id: 'finance', label: 'Cotisations & Recouvrement', icon: 'DollarSign' },
-  { id: 'renewals', label: 'Renouvellements', icon: 'RefreshCw' },
-  { id: 'quality', label: 'Qualité des Données', icon: 'ShieldCheck' },
-  { id: 'risks', label: 'Risques & Alertes', icon: 'AlertTriangle' },
-  { id: 'uploads', label: 'Historique Uploads', icon: 'Upload' },
-  { id: 'admin', label: 'Administration', icon: 'Settings' },
+  { id: 'plans', label: "Plans d'adhésion", icon: 'FileText' },
+  { id: 'recovery', label: 'Recouvrement & Qualité', icon: 'ShieldCheck' },
+  { id: 'upload', label: 'Upload Fichier', icon: 'Upload', adminOnly: true },
 ] as const;

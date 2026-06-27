@@ -1,5 +1,15 @@
 // Formatting utilities for AAEA Dashboard
 
+export const EUR_TO_FCF_A = 655.96;
+
+export function toFcfa(euros: number): number {
+  return Math.round(euros * EUR_TO_FCF_A);
+}
+
+export function formatFcfa(amount: number): string {
+  return amount.toLocaleString('fr-FR') + ' FCFA';
+}
+
 export function formatNumber(value: number | undefined | null): string {
   if (value === undefined || value === null) return '—';
   return new Intl.NumberFormat('fr-FR', {

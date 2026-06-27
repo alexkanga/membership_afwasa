@@ -5,32 +5,24 @@ import { useAuthStore, useDashboardStore } from '@/stores/auth-store';
 import { DASHBOARD_PAGES } from '@/lib/constants';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import {
   LayoutDashboard,
   Users,
   Globe,
-  DollarSign,
-  RefreshCw,
+  FileText,
   ShieldCheck,
-  AlertTriangle,
   Upload,
-  Settings,
-  LogOut,
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, React.ElementType> = {
   LayoutDashboard,
   Users,
   Globe,
-  DollarSign,
-  RefreshCw,
+  FileText,
   ShieldCheck,
-  AlertTriangle,
   Upload,
-  Settings,
 };
 
 export function AppSidebar() {
@@ -40,7 +32,7 @@ export function AppSidebar() {
   const setCurrentPage = useDashboardStore((s) => s.setCurrentPage);
 
   const visiblePages = DASHBOARD_PAGES.filter((page) => {
-    if (page.id === 'uploads' || page.id === 'admin') {
+    if ('adminOnly' in page && page.adminOnly) {
       return isAdmin;
     }
     return true;
