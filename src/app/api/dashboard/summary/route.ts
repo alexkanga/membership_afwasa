@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { AFRICAN_COUNTRIES, REGION_COUNTRY_MAP, AFRICAN_REGIONS } from '@/lib/constants';
 
@@ -15,8 +15,9 @@ function getMemberGroup(categorie: string | null | undefined): string {
   return 'INDIVIDUEL';
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
     const activeUpload = await db.uploadedFile.findFirst({ where: { isActiveDataset: true } });
     if (!activeUpload) {
       return NextResponse.json(getEmptyResponse());
@@ -54,6 +55,49 @@ export async function GET() {
     });
 
     if (allRecords.length === 0) {
+      return NextResponse.json(getEmptyResponse());
+    }
+
+    // === APPLY CUMULATIVE FILTERS ===
+    let records = allRecords;
+
+    const dateDebut = searchParams.get('dateDebut');
+    const dateFin = searchParams.get('dateFin');
+    const typeDate = searchParams.get('typeDate') || 'inscription';
+    if (dateDebut || dateFin) {
+      const start = dateDebut ? new Date(dateDebut) : null;
+      const end = dateFin ? new Date(dateFin) : null;
+      if (end) end.setHours(23, 59, 59, 999);
+      records = records.filter((r) => {
+        const refDate = typeDate === 'paiement'
+          ? r.datePaiementActivation || r.datePaiementComptabilite
+          : r.dateInscription || r.datePaiementActivation;
+        if (!refDate) return false;
+        if (start && refDate < start) return false;
+        if (end && refDate > end) return false;
+        return true;
+      });
+    }
+
+    const continent = searchParams.get('continent');
+    if (continent && continent !== 'all') {
+      records = records.filter((r) => {
+        const isAfrica = isAfricanCountry(r.paysNormalise);
+        return continent === 'afrique' ? isAfrica : !isAfrica;
+      });
+    }
+
+    const regionAfrique = searchParams.get('regionAfrique');
+    if (regionAfrique && regionAfrique !== 'all') {
+      records = records.filter((r) => r.regionAfrique === regionAfrique);
+    }
+
+    const planAdhesion = searchParams.get('planAdhesion');
+    if (planAdhesion && planAdhesion !== 'all') {
+      records = records.filter((r) => r.planAdhesionNormalise === planAdhesion);
+    }
+
+    if (records.length === 0) {
       return NextResponse.json(getEmptyResponse());
     }
 
@@ -118,12 +162,12 @@ export async function GET() {
     let totalWithPays = 0;
     let totalWithCodeMembre = 0;
     let totalWithDates = 0;
-    let totalRecords = allRecords.length;
+    let totalRecords = records.length;
 
     // === PLANS LIST ===
     const plansSet = new Set<string>();
 
-    for (const r of allRecords) {
+    for (const r of records) {
       const { isPaid, isAfrica, group, isActif } = classify(r);
 
       // Effectifs
@@ -214,7 +258,7 @@ export async function GET() {
 
     // Fix creance tranches — ensure 61-90j is separate
     // Re-process for correct tranche classification
-    for (const r of allRecords) {
+    for (const r of records) {
       if (r.statutPaiement === 'Payé') continue;
       const age = r.ageCreanceJours;
       if (age === null || age === undefined) continue;
@@ -226,7 +270,7 @@ export async function GET() {
     creanceTranches['31-60j'] = 0;
     creanceTranches['61-90j'] = 0;
     creanceTranches['>90j'] = 0;
-    for (const r of allRecords) {
+    for (const r of records) {
       if (r.statutPaiement === 'Payé') continue;
       const age = r.ageCreanceJours;
       if (age === null || age === undefined) continue;
@@ -337,17 +381,17 @@ export async function GET() {
         severite: 'avertissement',
       });
     }
-    const actifsNonPayes = allRecords.filter(r => r.statutActivation === 'Actif' && r.statutPaiement !== 'Payé').length;
-    if (actifsNonPayes > 0) {
+    const actifsNonPayesAnomaly = records.filter(r => r.statutActivation === 'Actif' && r.statutPaiement !== 'Payé').length;
+    if (actifsNonPayesAnomaly > 0) {
       anomalies.push({
         anomalie: 'Actifs non payés',
         description: 'Membres actifs dont la cotisation n\'est pas payée',
-        nombre: actifsNonPayes,
+        nombre: actifsNonPayesAnomaly,
         impact: 'Moyen',
         severite: 'avertissement',
       });
     }
-    const payesNonActifs = allRecords.filter(r => r.statutPaiement === 'Payé' && r.statutActivation !== 'Actif').length;
+    const payesNonActifs = records.filter(r => r.statutPaiement === 'Payé' && r.statutActivation !== 'Actif').length;
     if (payesNonActifs > 0) {
       anomalies.push({
         anomalie: 'Paiements non comptabilisés',
