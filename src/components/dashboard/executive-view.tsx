@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FilterBar } from '@/components/dashboard/filter-bar';
 import { useDashboardStore } from '@/stores/auth-store';
+import { useFilteredSummary } from '@/hooks/use-filtered-summary';
 import { toFcfa, formatFcfa, formatNumber } from '@/lib/format';
 import { CHART_COLORS } from '@/lib/constants';
-import { KpiCard } from '@/components/dashboard/kpi-card';
 import { Badge } from '@/components/ui/badge';
 import {
   Users, UserCheck, UserX, Wallet,
@@ -107,15 +107,9 @@ function DonutChart({ title, data, dataKey, nameKey, colors }: {
 export function ExecutiveView() {
   const filters = useDashboardStore((s) => s.filters);
   const setFilter = useDashboardStore((s) => s.setFilter);
-  const [data, setData] = useState<SummaryData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('/api/dashboard/summary')
-      .then((r) => r.json())
-      .then((d) => { setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, []);
+  const resetFilters = useDashboardStore((s) => s.resetFilters);
+  const applyFilters = useDashboardStore((s) => s.applyFilters);
+  const { data, loading } = useFilteredSummary<SummaryData>();
 
   const eff = data?.effectifs;
   const mon = data?.montants;
@@ -154,7 +148,7 @@ export function ExecutiveView() {
 
   return (
     <div className="space-y-6">
-      <FilterBar filters={filters} onFilterChange={(k, v) => setFilter(k, v as never)} plans={data?.plansList || []} />
+      <FilterBar filters={filters} onFilterChange={(k, v) => setFilter(k, v as never)} onApply={applyFilters} onReset={resetFilters} plans={data?.plansList || []} />
 
       {/* Groupe CARD 1 — Effectifs */}
       <div>

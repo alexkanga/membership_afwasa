@@ -45,7 +45,8 @@ export const useAuthStore = create<AuthState>()(
 );
 
 export interface DashboardFilters {
-  periode: string;
+  dateDebut: string;
+  dateFin: string;
   typeDate: string;
   continent: string;
   regionAfrique: string;
@@ -53,7 +54,8 @@ export interface DashboardFilters {
 }
 
 const defaultFilters: DashboardFilters = {
-  periode: '',
+  dateDebut: '',
+  dateFin: '',
   typeDate: 'inscription',
   continent: '',
   regionAfrique: '',
@@ -63,16 +65,20 @@ const defaultFilters: DashboardFilters = {
 interface DashboardState {
   currentPage: string;
   filters: DashboardFilters;
+  appliedFilters: DashboardFilters;
   setCurrentPage: (page: string) => void;
   setFilter: <K extends keyof DashboardFilters>(key: K, value: DashboardFilters[K]) => void;
   resetFilters: () => void;
+  applyFilters: () => void;
 }
 
 export const useDashboardStore = create<DashboardState>()((set) => ({
   currentPage: 'executive',
   filters: defaultFilters,
+  appliedFilters: defaultFilters,
   setCurrentPage: (page) => set({ currentPage: page }),
   setFilter: (key, value) =>
     set((state) => ({ filters: { ...state.filters, [key]: value } })),
-  resetFilters: () => set({ filters: defaultFilters }),
+  resetFilters: () => set({ filters: defaultFilters, appliedFilters: defaultFilters }),
+  applyFilters: () => set((state) => ({ appliedFilters: { ...state.filters } })),
 }));

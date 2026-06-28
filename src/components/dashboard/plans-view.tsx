@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FilterBar } from '@/components/dashboard/filter-bar';
 import { useDashboardStore } from '@/stores/auth-store';
+import { useFilteredSummary } from '@/hooks/use-filtered-summary';
 import { toFcfa, formatFcfa, formatNumber, formatPercent } from '@/lib/format';
 import { CHART_COLORS } from '@/lib/constants';
 import { Users, Wallet } from 'lucide-react';
@@ -15,6 +16,12 @@ import {
 } from 'recharts';
 
 interface PlanRow { plan: string; groupe: string; total: number; payes: number; nonPayes: number; montantPaye: number }
+
+interface PlansData {
+  groupes: { actifsPayes: number; actifsNonPayes: number; affiliesPayes: number; affiliesNonPayes: number; individuelsPayes: number; individuelsNonPayes: number; montantActifsPayes: number; montantAffiliesPayes: number; montantIndividuelsPayes: number; actifs: { sousCategorie: string; total: number; payes: number; nonPayes: number }[]; affilies: { sousCategorie: string; total: number; payes: number; nonPayes: number }[]; individuels: { sousCategorie: string; total: number; payes: number; nonPayes: number }[] };
+  plans: PlanRow[];
+  plansList: string[];
+}
 
 function PlanKpi({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: React.ElementType; color: string }) {
   return (
@@ -43,19 +50,9 @@ const GROUP_COLORS: Record<string, string> = {
 export function PlansView() {
   const filters = useDashboardStore((s) => s.filters);
   const setFilter = useDashboardStore((s) => s.setFilter);
-  const [data, setData] = useState<{
-    groupes: { actifsPayes: number; actifsNonPayes: number; affiliesPayes: number; affiliesNonPayes: number; individuelsPayes: number; individuelsNonPayes: number; montantActifsPayes: number; montantAffiliesPayes: number; montantIndividuelsPayes: number; actifs: { sousCategorie: string; total: number; payes: number; nonPayes: number }[]; affilies: { sousCategorie: string; total: number; payes: number; nonPayes: number }[]; individuels: { sousCategorie: string; total: number; payes: number; nonPayes: number }[] };
-    plans: PlanRow[];
-    plansList: string[];
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('/api/dashboard/summary')
-      .then((r) => r.json())
-      .then((d) => { setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, []);
+  const resetFilters = useDashboardStore((s) => s.resetFilters);
+  const applyFilters = useDashboardStore((s) => s.applyFilters);
+  const { data, loading } = useFilteredSummary<PlansData>();
 
   const g = data?.groupes;
   const totalPaye = (g?.montantActifsPayes || 0) + (g?.montantAffiliesPayes || 0) + (g?.montantIndividuelsPayes || 0);
@@ -77,7 +74,7 @@ export function PlansView() {
 
   return (
     <div className="space-y-6">
-      <FilterBar filters={filters} onFilterChange={(k, v) => setFilter(k, v as never)} plans={data?.plansList || []} />
+      <FilterBar filters={filters} onFilterChange={(k, v) => setFilter(k, v as never)} onApply={applyFilters} onReset={resetFilters} plans={data?.plansList || []} />
 
       {/* KPI Row 1 */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">

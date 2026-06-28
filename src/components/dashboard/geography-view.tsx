@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FilterBar } from '@/components/dashboard/filter-bar';
 import { useDashboardStore } from '@/stores/auth-store';
+import { useFilteredSummary } from '@/hooks/use-filtered-summary';
 import { toFcfa, formatFcfa, formatNumber, formatPercent } from '@/lib/format';
 import { CHART_COLORS } from '@/lib/constants';
 import { Globe, Wallet } from 'lucide-react';
@@ -78,15 +79,9 @@ function DonutSmall({ title, afrique, horsAfrique, colors }: {
 export function GeographyView() {
   const filters = useDashboardStore((s) => s.filters);
   const setFilter = useDashboardStore((s) => s.setFilter);
-  const [data, setData] = useState<SummaryData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('/api/dashboard/summary')
-      .then((r) => r.json())
-      .then((d) => { setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, []);
+  const resetFilters = useDashboardStore((s) => s.resetFilters);
+  const applyFilters = useDashboardStore((s) => s.applyFilters);
+  const { data, loading } = useFilteredSummary<SummaryData>();
 
   const geo = data?.geographie;
 
@@ -101,7 +96,7 @@ export function GeographyView() {
 
   return (
     <div className="space-y-6">
-      <FilterBar filters={filters} onFilterChange={(k, v) => setFilter(k, v as never)} plans={data?.plansList || []} />
+      <FilterBar filters={filters} onFilterChange={(k, v) => setFilter(k, v as never)} onApply={applyFilters} onReset={resetFilters} plans={data?.plansList || []} />
 
       {/* KPI Row 1 */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">

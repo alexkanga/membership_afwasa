@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FilterBar } from '@/components/dashboard/filter-bar';
 import { useDashboardStore } from '@/stores/auth-store';
+import { useFilteredSummary } from '@/hooks/use-filtered-summary';
 import { toFcfa, formatFcfa, formatNumber, formatPercent } from '@/lib/format';
 import { CHART_COLORS } from '@/lib/constants';
-import { Wallet, ShieldCheck, AlertTriangle, Mail, Globe, BadgeCheck, Clock, Copy } from 'lucide-react';
+import { Wallet, ShieldCheck, AlertTriangle, BadgeCheck, Clock, Copy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -14,6 +15,15 @@ import {
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';
+
+interface RecoveryData {
+  recouvrement: { montantTotalAPayer: number; montantPaye: number; montantARecouvrer: number; tauxRecouvrement: number };
+  creancesParTranche: { tranche: string; montant: number }[];
+  qualite: { completudeEmail: number; completudePays: number; completudeCodeMembre: number; completudeDates: number };
+  anomalies: { anomalie: string; description: string; nombre: number; impact: string; severite: string }[];
+  qualityAlerts: { payesSansDateCompta: number; payesSansCodeMembre: number; creancesPlus90j: number; doublesEmails: number };
+  plansList: string[];
+}
 
 interface QualiteItem { label: string; value: number; color: string }
 
@@ -46,22 +56,9 @@ function getQualityColor(v: number): string {
 export function RecoveryView() {
   const filters = useDashboardStore((s) => s.filters);
   const setFilter = useDashboardStore((s) => s.setFilter);
-  const [data, setData] = useState<{
-    recouvrement: { montantTotalAPayer: number; montantPaye: number; montantARecouvrer: number; tauxRecouvrement: number };
-    creancesParTranche: { tranche: string; montant: number }[];
-    qualite: { completudeEmail: number; completudePays: number; completudeCodeMembre: number; completudeDates: number };
-    anomalies: { anomalie: string; description: string; nombre: number; impact: string; severite: string }[];
-    qualityAlerts: { payesSansDateCompta: number; payesSansCodeMembre: number; creancesPlus90j: number; doublesEmails: number };
-    plansList: string[];
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('/api/dashboard/summary')
-      .then((r) => r.json())
-      .then((d) => { setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, []);
+  const resetFilters = useDashboardStore((s) => s.resetFilters);
+  const applyFilters = useDashboardStore((s) => s.applyFilters);
+  const { data, loading } = useFilteredSummary<RecoveryData>();
 
   const rec = data?.recouvrement;
 
@@ -102,7 +99,7 @@ export function RecoveryView() {
 
   return (
     <div className="space-y-6">
-      <FilterBar filters={filters} onFilterChange={(k, v) => setFilter(k, v as never)} plans={data?.plansList || []} />
+      <FilterBar filters={filters} onFilterChange={(k, v) => setFilter(k, v as never)} onApply={applyFilters} onReset={resetFilters} plans={data?.plansList || []} />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
